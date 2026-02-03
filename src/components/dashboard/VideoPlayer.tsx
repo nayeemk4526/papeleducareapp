@@ -32,9 +32,11 @@ const VideoPlayer = ({ src, title, onComplete, onTimeUpdate, className }: VideoP
     const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const youtubeMatch = url.match(youtubeRegex);
     if (youtubeMatch && youtubeMatch[1]) {
+      // Use youtube-nocookie.com for enhanced privacy and reduced branding
+      // Parameters to minimize YouTube branding as much as possible
       return {
         type: "iframe",
-        src: `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=0&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&disablekb=0&fs=1&cc_load_policy=0`,
+        src: `https://www.youtube-nocookie.com/embed/${youtubeMatch[1]}?autoplay=0&rel=0&modestbranding=1&iv_load_policy=3&fs=1&playsinline=1&disablekb=0&cc_load_policy=0&controls=1`,
       };
     }
 
