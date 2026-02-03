@@ -30,6 +30,8 @@ export interface Course {
     id: string;
     name: string;
     title: string | null;
+    subtitle?: string | null;
+    bio?: string | null;
     avatar_url: string | null;
   } | null;
 }
