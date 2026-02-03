@@ -2,115 +2,153 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 const slides = [
   {
     id: 1,
-    image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920&q=80",
-    title: "স্বপ্ন দেখো, সাফল্য অর্জন করো",
-    subtitle: "পাপেল এডু-কেয়ারে আপনাকে স্বাগতম",
-    description: "বাংলাদেশের সেরা অনলাইন শিক্ষা প্ল্যাটফর্মে যোগ দিন",
+    title: "শিক্ষার নতুন দিগন্ত",
+    subtitle: "পাপেল এডু-কেয়ারে স্বাগতম",
+    description: "ডিপ্লোমা ইঞ্জিনিয়ারিং এর সেরা প্ল্যাটফর্ম",
+    gradient: "from-electric-blue/80 to-deep-purple/80",
   },
   {
     id: 2,
-    image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1920&q=80",
     title: "দক্ষ মেন্টরদের সাথে শিখুন",
-    subtitle: "BUET ও DUET এর অভিজ্ঞ প্রভাষকগণ",
-    description: "সেরা শিক্ষকদের কাছ থেকে সেরা শিক্ষা নিন",
+    subtitle: "BUET ও DUET এর প্রভাষকবৃন্দ",
+    description: "অভিজ্ঞ শিক্ষকদের সাথে লাইভ ক্লাস",
+    gradient: "from-deep-purple/80 to-vibrant-pink/80",
   },
   {
     id: 3,
-    image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1920&q=80",
-    title: "ডিপ্লোমা থেকে স্কিল ডেভেলপমেন্ট",
-    subtitle: "সকল শ্রেণির জন্য কোর্স",
-    description: "এসএসসি, এইচএসসি, ডিপ্লোমা এবং আরও অনেক কিছু",
+    title: "সফলতার পথে এগিয়ে যান",
+    subtitle: "১০,০০০+ সফল শিক্ষার্থী",
+    description: "আপনার স্বপ্ন পূরণে আমরা পাশে আছি",
+    gradient: "from-neon-cyan/80 to-electric-blue/80",
   },
   {
     id: 4,
-    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1920&q=80",
-    title: "লাইভ ক্লাস ও রেকর্ডেড ভিডিও",
-    subtitle: "২৪/৭ অ্যাক্সেস",
-    description: "যেকোনো সময়, যেকোনো জায়গায় শিখুন",
+    title: "সুপার সাজেশন ই-বুক",
+    subtitle: "পরীক্ষায় A+ নিশ্চিত করুন",
+    description: "বিগত বছরের প্রশ্ন বিশ্লেষণ",
+    gradient: "from-vibrant-pink/80 to-golden/80",
   },
   {
     id: 5,
-    image: "https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1920&q=80",
-    title: "সাফল্যের দিকে প্রথম পদক্ষেপ",
-    subtitle: "আজই ভর্তি হন",
-    description: "আপনার সাফল্যের যাত্রা শুরু করুন আমাদের সাথে",
+    title: "২৪/৭ অনলাইন সাপোর্ট",
+    subtitle: "যেকোনো সমস্যায় পাশে আছি",
+    description: "আপনার প্রশ্নের উত্তর দিতে সদা প্রস্তুত",
+    gradient: "from-golden/80 to-neon-cyan/80",
   },
 ];
 
 const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [direction, setDirection] = useState(0);
 
   const nextSlide = useCallback(() => {
+    setDirection(1);
     setCurrentSlide((prev) => (prev + 1) % slides.length);
   }, []);
 
   const prevSlide = useCallback(() => {
+    setDirection(-1);
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   }, []);
 
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
+  useEffect(() => {
+    const timer = setInterval(nextSlide, 5000);
+    return () => clearInterval(timer);
+  }, [nextSlide]);
+
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0,
+      scale: 1.2,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0,
+      scale: 0.8,
+    }),
   };
 
-  useEffect(() => {
-    if (!isAutoPlaying) return;
-
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, nextSlide]);
-
   return (
-    <section className="relative h-[60vh] md:h-[80vh] lg:h-screen overflow-hidden">
-      {/* Slides */}
-      <AnimatePresence mode="wait">
+    <section className="relative h-[70vh] md:h-[85vh] overflow-hidden">
+      {/* Background Slides with Ken Burns Effect */}
+      <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={currentSlide}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.7 }}
+          custom={direction}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{
+            x: { type: "spring", stiffness: 300, damping: 30 },
+            opacity: { duration: 0.5 },
+            scale: { duration: 0.5 },
+          }}
           className="absolute inset-0"
         >
-          {/* Background Image with Ken Burns Effect */}
-          <motion.div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${slides[currentSlide].image})` }}
-            initial={{ scale: 1 }}
-            animate={{ scale: 1.1 }}
-            transition={{ duration: 8, ease: "linear" }}
-          />
+          {/* Animated Background Pattern */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${slides[currentSlide].gradient}`}>
+            {/* Animated Shapes */}
+            <motion.div
+              animate={{
+                scale: [1, 1.2, 1],
+                rotate: [0, 180, 360],
+              }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl"
+            />
+            <motion.div
+              animate={{
+                scale: [1.2, 1, 1.2],
+                rotate: [360, 180, 0],
+              }}
+              transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+              className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-white/10 rounded-full blur-3xl"
+            />
 
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-background/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+            {/* Grid Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+                  backgroundSize: "40px 40px",
+                }}
+              />
+            </div>
+          </div>
         </motion.div>
       </AnimatePresence>
 
       {/* Content */}
-      <div className="relative z-10 h-full container mx-auto px-4 flex items-center">
-        <div className="max-w-2xl">
+      <div className="relative z-10 h-full flex items-center">
+        <div className="container mx-auto px-4">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
+              exit={{ opacity: 0, y: -50 }}
               transition={{ duration: 0.5 }}
+              className="max-w-3xl"
             >
               <motion.span
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="inline-block px-4 py-1.5 mb-4 text-sm font-medium rounded-full bg-primary/20 text-primary border border-primary/30"
+                className="inline-block px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium mb-4"
               >
                 {slides[currentSlide].subtitle}
               </motion.span>
@@ -119,16 +157,16 @@ const HeroSlider = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 leading-tight"
+                className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 leading-tight"
               >
-                <span className="gradient-text">{slides[currentSlide].title}</span>
+                {slides[currentSlide].title}
               </motion.h1>
 
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-lg md:text-xl text-muted-foreground mb-8"
+                className="text-lg md:text-xl text-white/90 mb-8"
               >
                 {slides[currentSlide].description}
               </motion.p>
@@ -141,16 +179,16 @@ const HeroSlider = () => {
               >
                 <Button
                   size="lg"
-                  className="gradient-primary btn-glow text-lg px-8 py-6 font-semibold"
+                  className="bg-white text-foreground hover:bg-white/90 font-semibold text-lg px-8 shadow-xl hover:shadow-2xl transition-all"
                 >
                   ভর্তি হন
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="text-lg px-8 py-6 font-semibold border-2"
+                  className="border-2 border-white text-white hover:bg-white/10 font-semibold text-lg px-8"
                 >
-                  কোর্স দেখুন
+                  বিস্তারিত দেখুন
                 </Button>
               </motion.div>
             </motion.div>
@@ -159,45 +197,54 @@ const HeroSlider = () => {
       </div>
 
       {/* Navigation Arrows */}
-      <div className="absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-4 pointer-events-none">
-        <Button
-          variant="ghost"
-          size="icon"
+      <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4 z-20 pointer-events-none">
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={prevSlide}
-          onMouseEnter={() => setIsAutoPlaying(false)}
-          onMouseLeave={() => setIsAutoPlaying(true)}
-          className="pointer-events-auto w-12 h-12 rounded-full glass hover:bg-primary/20"
+          className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors pointer-events-auto"
+          aria-label="Previous slide"
         >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
+          <ChevronLeft className="w-6 h-6" />
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={nextSlide}
-          onMouseEnter={() => setIsAutoPlaying(false)}
-          onMouseLeave={() => setIsAutoPlaying(true)}
-          className="pointer-events-auto w-12 h-12 rounded-full glass hover:bg-primary/20"
+          className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors pointer-events-auto"
+          aria-label="Next slide"
         >
-          <ChevronRight className="h-6 w-6" />
-        </Button>
+          <ChevronRight className="w-6 h-6" />
+        </motion.button>
       </div>
 
-      {/* Dots Navigation */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+      {/* Slide Indicators */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
         {slides.map((_, index) => (
           <button
             key={index}
-            onClick={() => goToSlide(index)}
-            onMouseEnter={() => setIsAutoPlaying(false)}
-            onMouseLeave={() => setIsAutoPlaying(true)}
-            className={cn(
-              "w-3 h-3 rounded-full transition-all duration-300",
+            onClick={() => {
+              setDirection(index > currentSlide ? 1 : -1);
+              setCurrentSlide(index);
+            }}
+            className={`transition-all duration-300 ${
               index === currentSlide
-                ? "w-8 bg-primary"
-                : "bg-primary/40 hover:bg-primary/60"
-            )}
+                ? "w-8 h-2 bg-white rounded-full"
+                : "w-2 h-2 bg-white/50 rounded-full hover:bg-white/70"
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
+      </div>
+
+      {/* Bottom Wave */}
+      <div className="absolute bottom-0 left-0 right-0 z-10">
+        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+          <path
+            d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
+            className="fill-background"
+          />
+        </svg>
       </div>
     </section>
   );
