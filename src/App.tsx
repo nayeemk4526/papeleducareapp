@@ -4,45 +4,82 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import MobileNavigation from "@/components/MobileNavigation";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Auth from "./pages/Auth";
 import Courses from "./pages/Courses";
 import DiplomaDynamic from "./pages/DiplomaDynamic";
 import SemesterPage from "./pages/SemesterPage";
 import CategoryPage from "./pages/CategoryPage";
 import NotFound from "./pages/NotFound";
 
+// Dashboard Pages
+import StudentDashboard from "./pages/dashboard/StudentDashboard";
+import MyCourses from "./pages/dashboard/MyCourses";
+import CoursePlayer from "./pages/dashboard/CoursePlayer";
+import PaymentHistory from "./pages/dashboard/PaymentHistory";
+import ProfileSettings from "./pages/dashboard/ProfileSettings";
+
+// Admin Pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminCourses from "./pages/admin/AdminCourses";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminPayments from "./pages/admin/AdminPayments";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminTeachers from "./pages/admin/AdminTeachers";
+
+// Course Pages
+import CourseDetail from "./pages/CourseDetail";
+
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="min-h-screen pb-20 lg:pb-0">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/diploma-dynamic" element={<DiplomaDynamic />} />
-              <Route path="/semester/:id" element={<SemesterPage />} />
-              <Route path="/category/:slug" element={<CategoryPage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <MobileNavigation />
-          </div>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <div className="min-h-screen pb-20 lg:pb-0">
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/course/:slug" element={<CourseDetail />} />
+                <Route path="/diploma-dynamic" element={<DiplomaDynamic />} />
+                <Route path="/semester/:id" element={<SemesterPage />} />
+                <Route path="/category/:slug" element={<CategoryPage />} />
+
+                {/* Student Dashboard Routes */}
+                <Route path="/dashboard" element={<StudentDashboard />} />
+                <Route path="/dashboard/courses" element={<MyCourses />} />
+                <Route path="/dashboard/course/:courseId" element={<CoursePlayer />} />
+                <Route path="/dashboard/payments" element={<PaymentHistory />} />
+                <Route path="/dashboard/profile" element={<ProfileSettings />} />
+
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/courses" element={<AdminCourses />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/payments" element={<AdminPayments />} />
+                <Route path="/admin/categories" element={<AdminCategories />} />
+                <Route path="/admin/teachers" element={<AdminTeachers />} />
+
+                {/* Catch-all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <MobileNavigation />
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
