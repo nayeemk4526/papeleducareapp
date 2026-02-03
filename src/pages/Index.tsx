@@ -1,13 +1,42 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useEffect } from "react";
+import Navbar from "@/components/Navbar";
+import GlobalLoader from "@/components/GlobalLoader";
+import HeroSlider from "@/components/HeroSlider";
+import CategoryGrid from "@/components/CategoryGrid";
+import RunningCourses from "@/components/RunningCourses";
+import WhyChooseUs from "@/components/WhyChooseUs";
+import AllCourses from "@/components/AllCourses";
+import Statistics from "@/components/Statistics";
+import Testimonials from "@/components/Testimonials";
+import TeachersPanel from "@/components/TeachersPanel";
+import Footer from "@/components/Footer";
+import MobileNavigation from "@/components/MobileNavigation";
 
 const Index = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <>
+      {isLoading && <GlobalLoader onLoadingComplete={() => setIsLoading(false)} />}
+      
+      <div className={isLoading ? "hidden" : ""}>
+        <Navbar />
+        
+        <main className="pb-16 lg:pb-0">
+          <HeroSlider />
+          <CategoryGrid />
+          <RunningCourses />
+          <WhyChooseUs />
+          <AllCourses />
+          <Statistics />
+          <Testimonials />
+          <TeachersPanel />
+        </main>
+
+        <Footer />
+        <MobileNavigation />
       </div>
-    </div>
+    </>
   );
 };
 
