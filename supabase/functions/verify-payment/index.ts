@@ -23,33 +23,28 @@ const handler = async (req: Request): Promise<Response> => {
     // Verify admin authentication
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "অনুমোদন প্রয়োজন" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "অনুমোদন প্রয়োজন" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: authError } = await supabase.auth.getUser(token);
-    
+
     if (authError || !userData.user) {
-      return new Response(
-        JSON.stringify({ error: "অবৈধ সেশন" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "অবৈধ সেশন" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Check if user is admin using service role
-    const adminClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const { data: isAdmin } = await adminClient.rpc("has_role", {
       _user_id: userData.user.id,
@@ -57,20 +52,20 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (!isAdmin) {
-      return new Response(
-        JSON.stringify({ error: "শুধুমাত্র অ্যাডমিন এই অপারেশন করতে পারবে" }),
-        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "শুধুমাত্র অ্যাডমিন এই অপারেশন করতে পারবে" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     const body: VerifyPaymentRequest = await req.json();
     const { payment_id, action, admin_notes } = body;
 
     if (!payment_id || !action) {
-      return new Response(
-        JSON.stringify({ error: "পেমেন্ট আইডি এবং অ্যাকশন প্রয়োজন" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "পেমেন্ট আইডি এবং অ্যাকশন প্রয়োজন" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Get payment details
@@ -81,17 +76,17 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (paymentError || !payment) {
-      return new Response(
-        JSON.stringify({ error: "পেমেন্ট পাওয়া যায়নি" }),
-        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "পেমেন্ট পাওয়া যায়নি" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     if (payment.status !== "pending") {
-      return new Response(
-        JSON.stringify({ error: "এই পেমেন্ট ইতিমধ্যে প্রসেস করা হয়েছে" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "এই পেমেন্ট ইতিমধ্যে প্রসেস করা হয়েছে" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     const newStatus = action === "approve" ? "completed" : "failed";
@@ -113,10 +108,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (updateError) {
       console.error("Payment update error:", updateError);
-      return new Response(
-        JSON.stringify({ error: "পেমেন্ট আপডেট করতে সমস্যা হয়েছে" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "পেমেন্ট আপডেট করতে সমস্যা হয়েছে" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // If approved, create enrollment
@@ -138,7 +133,7 @@ const handler = async (req: Request): Promise<Response> => {
         title: "পেমেন্ট সফল!",
         message: `আপনার "${payment.courses?.title}" কোর্সে এনরোলমেন্ট সফল হয়েছে। এখনই শিখতে শুরু করুন!`,
         type: "success",
-        link: `/dashboard/course/${payment.course_id}`,
+        link: `/dashboard`,
       });
 
       // Update course student count
@@ -166,14 +161,14 @@ const handler = async (req: Request): Promise<Response> => {
         success: true,
         message: action === "approve" ? "পেমেন্ট অনুমোদন করা হয়েছে" : "পেমেন্ট বাতিল করা হয়েছে",
       }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   } catch (error) {
     console.error("Payment verification error:", error);
-    return new Response(
-      JSON.stringify({ error: "পেমেন্ট যাচাই করতে সমস্যা হয়েছে" }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-    );
+    return new Response(JSON.stringify({ error: "পেমেন্ট যাচাই করতে সমস্যা হয়েছে" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 };
 
