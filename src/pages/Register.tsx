@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
-import MobileNavigation from "@/components/MobileNavigation";
+import logoImage from "@/assets/logo.png";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +22,6 @@ const Register = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle register logic
     console.log("Register:", formData);
   };
 
@@ -30,23 +29,21 @@ const Register = () => {
     <>
       <Navbar />
       
-      <main className="min-h-screen pt-20 pb-16 lg:pb-0 flex items-center justify-center py-8">
+      <main className="min-h-screen pt-20 flex items-center justify-center py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-md mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="bg-card rounded-2xl p-8 border border-border shadow-xl"
+              className="bg-card rounded-2xl p-6 md:p-8 border border-border shadow-xl"
             >
               {/* Header */}
-              <div className="text-center mb-8">
-                <Link to="/" className="inline-flex items-center gap-2 mb-6">
-                  <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-                    <span className="text-xl font-bold text-primary-foreground">প</span>
-                  </div>
+              <div className="text-center mb-6 md:mb-8">
+                <Link to="/" className="inline-flex items-center gap-2 mb-4 md:mb-6">
+                  <img src={logoImage} alt="পাপেল এডু-কেয়ার" className="w-14 h-14 md:w-16 md:h-16 rounded-full" />
                 </Link>
-                <h1 className="text-2xl font-bold mb-2">
+                <h1 className="text-xl md:text-2xl font-bold mb-2">
                   <span className="gradient-text">রেজিস্টার করুন</span>
                 </h1>
                 <p className="text-muted-foreground text-sm">
@@ -57,7 +54,7 @@ const Register = () => {
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">পূর্ণ নাম *</Label>
+                  <Label htmlFor="name" className="text-sm">পূর্ণ নাম *</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
@@ -72,7 +69,7 @@ const Register = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">ইমেইল *</Label>
+                  <Label htmlFor="email" className="text-sm">ইমেইল *</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
@@ -88,7 +85,7 @@ const Register = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">ফোন নম্বর *</Label>
+                  <Label htmlFor="phone" className="text-sm">ফোন নম্বর *</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
@@ -103,7 +100,7 @@ const Register = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">পাসওয়ার্ড *</Label>
+                  <Label htmlFor="password" className="text-sm">পাসওয়ার্ড *</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
@@ -127,7 +124,7 @@ const Register = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">পাসওয়ার্ড নিশ্চিত করুন *</Label>
+                  <Label htmlFor="confirmPassword" className="text-sm">পাসওয়ার্ড নিশ্চিত করুন *</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
@@ -148,8 +145,9 @@ const Register = () => {
                     checked={formData.agreeTerms}
                     onCheckedChange={(checked) => setFormData({ ...formData, agreeTerms: checked as boolean })}
                     required
+                    className="mt-1"
                   />
-                  <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer">
+                  <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer leading-tight">
                     আমি{" "}
                     <Link to="/terms" className="text-primary hover:underline">
                       শর্তাবলী
@@ -213,8 +211,6 @@ const Register = () => {
           </div>
         </div>
       </main>
-
-      <MobileNavigation />
     </>
   );
 };
