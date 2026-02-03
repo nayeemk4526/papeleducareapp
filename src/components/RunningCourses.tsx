@@ -223,7 +223,7 @@ const RunningCourses = () => {
 
         {/* Category Tabs */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:flex-wrap md:justify-center gap-2 md:gap-3">
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {runningCourseTabs.map((tab) => (
               <button
                 key={tab.slug}
