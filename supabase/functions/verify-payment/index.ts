@@ -133,7 +133,7 @@ const handler = async (req: Request): Promise<Response> => {
         title: "পেমেন্ট সফল!",
         message: `আপনার "${payment.courses?.title}" কোর্সে এনরোলমেন্ট সফল হয়েছে। এখনই শিখতে শুরু করুন!`,
         type: "success",
-        link: `/dashboard`,
+        link: `/dashboard/course/${payment.course_id}`,
       });
 
       // Update course student count
