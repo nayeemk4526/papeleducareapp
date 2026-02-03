@@ -33,6 +33,7 @@ import AdminTeachers from "./pages/admin/AdminTeachers";
 
 // Course Pages
 import CourseDetail from "./pages/CourseDetail";
+import Checkout from "./pages/Checkout";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/course/:slug" element={<CourseDetail />} />
+                <Route path="/checkout/:courseId" element={<Checkout />} />
                 <Route path="/diploma-dynamic" element={<DiplomaDynamic />} />
                 <Route path="/semester/:id" element={<SemesterPage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />

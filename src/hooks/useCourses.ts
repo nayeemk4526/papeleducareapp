@@ -92,11 +92,31 @@ export const useCourseBySlug = (slug: string) => {
   });
 };
 
+export const useCourseById = (id: string) => {
+  return useQuery({
+    queryKey: ["course", "id", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("courses")
+        .select(`
+          *,
+          category:categories(id, name, slug),
+          instructor:teachers(id, name, title, subtitle, bio, avatar_url)
+        `)
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as Course | null;
+    },
+    enabled: !!id,
+  });
+};
+
 export const useCoursesByCategorySlug = (categorySlug: string) => {
   return useQuery({
     queryKey: ["courses", "category", categorySlug],
     queryFn: async () => {
-      // First get the category ID
       const { data: category, error: categoryError } = await supabase
         .from("categories")
         .select("id")
