@@ -10,6 +10,8 @@ import Index from "./pages/Index";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Courses from "./pages/Courses";
 import DiplomaDynamic from "./pages/DiplomaDynamic";
 import SemesterPage from "./pages/SemesterPage";
@@ -54,6 +56,8 @@ const App = () => (
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/course/:slug" element={<CourseDetail />} />
                 <Route path="/checkout/:courseId" element={<Checkout />} />
