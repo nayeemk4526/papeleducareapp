@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, CreditCard, Smartphone, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, CreditCard, Smartphone, CheckCircle, AlertCircle, User, Building2, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useCourseById } from "@/hooks/useCourses";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,16 +24,24 @@ const paymentMethods = [
 const Checkout = () => {
   const navigate = useNavigate();
   const { courseId } = useParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   
   const { data: course, isLoading } = useCourseById(courseId || "");
   
   const [selectedMethod, setSelectedMethod] = useState("bkash");
   const [transactionId, setTransactionId] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  
+  // Billing form state
+  const [billingInfo, setBillingInfo] = useState({
+    fullName: profile?.full_name || "",
+    phone: profile?.phone || "",
+    email: profile?.email || "",
+    institute: "",
+    address: "",
+  });
 
   if (!user) {
     navigate("/auth");
@@ -68,19 +77,38 @@ const Checkout = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!transactionId.trim()) {
+    // Validate billing info
+    if (!billingInfo.fullName.trim()) {
       toast({
         title: "ত্রুটি",
-        description: "ট্রানজেকশন আইডি দিন",
+        description: "নাম দিন",
         variant: "destructive",
       });
       return;
     }
 
-    if (!phoneNumber.trim() || phoneNumber.length < 11) {
+    if (!billingInfo.phone.trim() || billingInfo.phone.length < 11) {
       toast({
         title: "ত্রুটি",
         description: "সঠিক ফোন নম্বর দিন",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!billingInfo.email.trim()) {
+      toast({
+        title: "ত্রুটি",
+        description: "ইমেইল দিন",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!transactionId.trim()) {
+      toast({
+        title: "ত্রুটি",
+        description: "ট্রানজেকশন আইডি দিন",
         variant: "destructive",
       });
       return;
@@ -95,7 +123,13 @@ const Checkout = () => {
           amount: finalPrice,
           payment_method: selectedMethod,
           transaction_id: transactionId.trim(),
-          phone_number: phoneNumber.trim(),
+          phone_number: billingInfo.phone.trim(),
+          billing_info: {
+            full_name: billingInfo.fullName,
+            email: billingInfo.email,
+            institute: billingInfo.institute,
+            address: billingInfo.address,
+          },
         },
       });
 
@@ -160,7 +194,7 @@ const Checkout = () => {
       <Navbar />
       
       <main className="pt-20 min-h-screen py-8">
-        <div className="container mx-auto px-4 max-w-4xl">
+        <div className="container mx-auto px-4 max-w-5xl">
           <Button
             variant="ghost"
             className="mb-6"
@@ -172,10 +206,106 @@ const Checkout = () => {
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Payment Form */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-6">
+              {/* Billing Information */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="w-5 h-5" />
+                      বিলিং তথ্য
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="fullName">পূর্ণ নাম *</Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="fullName"
+                            placeholder="আপনার পূর্ণ নাম"
+                            value={billingInfo.fullName}
+                            onChange={(e) => setBillingInfo({ ...billingInfo, fullName: e.target.value })}
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">ফোন নম্বর *</Label>
+                        <div className="relative">
+                          <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="phone"
+                            placeholder="01XXXXXXXXX"
+                            value={billingInfo.phone}
+                            onChange={(e) => setBillingInfo({ ...billingInfo, phone: e.target.value })}
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">ইমেইল *</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="example@email.com"
+                            value={billingInfo.email}
+                            onChange={(e) => setBillingInfo({ ...billingInfo, email: e.target.value })}
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="institute">প্রতিষ্ঠানের নাম</Label>
+                        <div className="relative">
+                          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="institute"
+                            placeholder="স্কুল/কলেজ/বিশ্ববিদ্যালয়"
+                            value={billingInfo.institute}
+                            onChange={(e) => setBillingInfo({ ...billingInfo, institute: e.target.value })}
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="address">ঠিকানা</Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                        <Textarea
+                          id="address"
+                          placeholder="আপনার সম্পূর্ণ ঠিকানা"
+                          value={billingInfo.address}
+                          onChange={(e) => setBillingInfo({ ...billingInfo, address: e.target.value })}
+                          className="pl-10 min-h-[80px]"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Payment Method */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
               >
                 <Card>
                   <CardHeader>
@@ -253,24 +383,8 @@ const Checkout = () => {
                           onChange={(e) => setTransactionId(e.target.value)}
                           required
                         />
-                      </div>
-
-                      {/* Phone Number */}
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">আপনার মোবাইল নম্বর *</Label>
-                        <div className="relative">
-                          <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                          <Input
-                            id="phone"
-                            placeholder="01XXXXXXXXX"
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            className="pl-10"
-                            required
-                          />
-                        </div>
                         <p className="text-xs text-muted-foreground">
-                          এই নম্বরে SMS এ কনফার্মেশন পাঠানো হবে
+                          পেমেন্ট করার পর প্রাপ্ত Transaction ID এখানে দিন
                         </p>
                       </div>
 
@@ -300,7 +414,7 @@ const Checkout = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
+                transition={{ delay: 0.2 }}
               >
                 <Card className="sticky top-24">
                   <CardHeader>

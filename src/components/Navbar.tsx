@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X, Sun, Moon, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { signOut } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import logoImage from "@/assets/logo.png";
 
@@ -19,6 +21,8 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAdmin, isLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -32,6 +36,11 @@ const Navbar = () => {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <>
@@ -119,16 +128,48 @@ const Navbar = () => {
 
               {/* Auth Buttons (Desktop) */}
               <div className="hidden md:flex items-center gap-3">
-                <Link to="/auth">
-                  <Button variant="ghost" className="font-medium text-foreground hover:text-primary">
-                    লগইন
-                  </Button>
-                </Link>
-                <Link to="/auth?tab=register">
-                  <Button className="bg-gradient-to-r from-secondary to-vibrant-pink hover:from-secondary/90 hover:to-vibrant-pink/90 text-white font-medium px-6 rounded-full shadow-lg hover:shadow-xl transition-all">
-                    রেজিস্টার
-                  </Button>
-                </Link>
+                {isLoading ? (
+                  <div className="w-8 h-8 animate-pulse bg-muted rounded-full" />
+                ) : user ? (
+                  <>
+                    {isAdmin ? (
+                      <Link to="/admin">
+                        <Button variant="ghost" className="font-medium text-foreground hover:text-primary">
+                          <Settings className="w-4 h-4 mr-2" />
+                          অ্যাডমিন প্যানেল
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link to="/dashboard">
+                        <Button variant="ghost" className="font-medium text-foreground hover:text-primary">
+                          <LayoutDashboard className="w-4 h-4 mr-2" />
+                          ড্যাশবোর্ড
+                        </Button>
+                      </Link>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      className="font-medium rounded-full"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      লগআউট
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth">
+                      <Button variant="ghost" className="font-medium text-foreground hover:text-primary">
+                        লগইন
+                      </Button>
+                    </Link>
+                    <Link to="/auth?tab=register">
+                      <Button className="bg-gradient-to-r from-secondary to-vibrant-pink hover:from-secondary/90 hover:to-vibrant-pink/90 text-white font-medium px-6 rounded-full shadow-lg hover:shadow-xl transition-all">
+                        রেজিস্টার
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
 
               {/* Mobile Menu Button */}
@@ -190,16 +231,46 @@ const Navbar = () => {
                   transition={{ delay: 0.4 }}
                   className="flex flex-col gap-2"
                 >
-                  <Link to="/auth">
-                    <Button variant="outline" className="w-full font-medium rounded-xl">
-                      লগইন
-                    </Button>
-                  </Link>
-                  <Link to="/auth?tab=register">
-                    <Button className="w-full bg-gradient-to-r from-secondary to-vibrant-pink text-white font-medium rounded-xl">
-                      রেজিস্টার
-                    </Button>
-                  </Link>
+                  {user ? (
+                    <>
+                      {isAdmin ? (
+                        <Link to="/admin">
+                          <Button variant="outline" className="w-full font-medium rounded-xl">
+                            <Settings className="w-4 h-4 mr-2" />
+                            অ্যাডমিন প্যানেল
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Link to="/dashboard">
+                          <Button variant="outline" className="w-full font-medium rounded-xl">
+                            <LayoutDashboard className="w-4 h-4 mr-2" />
+                            ড্যাশবোর্ড
+                          </Button>
+                        </Link>
+                      )}
+                      <Button 
+                        variant="ghost" 
+                        className="w-full font-medium rounded-xl text-destructive hover:text-destructive"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        লগআউট
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/auth">
+                        <Button variant="outline" className="w-full font-medium rounded-xl">
+                          লগইন
+                        </Button>
+                      </Link>
+                      <Link to="/auth?tab=register">
+                        <Button className="w-full bg-gradient-to-r from-secondary to-vibrant-pink text-white font-medium rounded-xl">
+                          রেজিস্টার
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </motion.div>
               </div>
             </motion.div>
