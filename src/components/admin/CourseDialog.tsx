@@ -129,7 +129,7 @@ const CourseDialog = ({ open, onOpenChange, course }: CourseDialogProps) => {
             <div className="space-y-2">
               <Label htmlFor="category">ক্যাটাগরি</Label>
               <Select 
-                value={formData.category_id || ""} 
+                value={formData.category_id || undefined} 
                 onValueChange={(value) => setFormData({ ...formData, category_id: value })}
               >
                 <SelectTrigger>
@@ -146,7 +146,7 @@ const CourseDialog = ({ open, onOpenChange, course }: CourseDialogProps) => {
             <div className="space-y-2">
               <Label htmlFor="instructor">শিক্ষক</Label>
               <Select 
-                value={formData.instructor_id || ""} 
+                value={formData.instructor_id || undefined} 
                 onValueChange={(value) => setFormData({ ...formData, instructor_id: value })}
               >
                 <SelectTrigger>
