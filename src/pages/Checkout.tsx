@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, CreditCard, Smartphone, CheckCircle, AlertCircle, User, Building2, MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ const paymentMethods = [
 const Checkout = () => {
   const navigate = useNavigate();
   const { courseId } = useParams();
+  const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
   const { toast } = useToast();
   
@@ -34,6 +35,27 @@ const Checkout = () => {
   const [transactionId, setTransactionId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Handle payment callback from bKash
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    const message = searchParams.get("message");
+
+    if (paymentStatus === "success") {
+      // Redirect to dashboard on success
+      toast({
+        title: "পেমেন্ট সফল!",
+        description: "আপনার কোর্সে এনরোলমেন্ট সম্পন্ন হয়েছে।",
+      });
+      navigate("/dashboard/courses", { replace: true });
+    } else if (paymentStatus === "error" || paymentStatus === "cancel") {
+      toast({
+        title: paymentStatus === "cancel" ? "পেমেন্ট বাতিল" : "পেমেন্ট ব্যর্থ",
+        description: message || "আবার চেষ্টা করুন",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, navigate, toast]);
   
   // Billing form state
   const [billingInfo, setBillingInfo] = useState({
