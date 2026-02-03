@@ -1,36 +1,17 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { User, ArrowLeft, Clock, Users, Star, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import MobileNavigation from "@/components/MobileNavigation";
-
-const categoryNames: Record<string, string> = {
-  "class-9": "নবম শ্রেণি (ভোকেশনাল)",
-  "class-10": "দশম শ্রেণি (ভোকেশনাল)",
-  "class-11": "একাদশ শ্রেণি",
-  "class-12": "দ্বাদশ শ্রেণি",
-  "diploma-care": "ডিপ্লোমা কেয়ার কোর্স",
-  "admission": "এডমিশন",
-  "skill-development": "স্কিল ডেভেলপমেন্ট",
-  "super-suggestion": "সুপার সাজেশন",
-  "autocad": "অটো ক্যাড",
-  "ssc": "এসএসসি",
-  "hsc": "এইচএসসি",
-};
-
-const coursesData = [
-  { id: 1, title: "বিষয়ভিত্তিক প্র্যাক্টিস কোর্স", instructor: "মোহাম্মদ রফিক", price: "১,৫০০", image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80" },
-  { id: 2, title: "পরীক্ষা প্রস্তুতি মাস্টার কোর্স", instructor: "সাদিয়া আক্তার", price: "১,২০০", image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=80" },
-  { id: 3, title: "সম্পূর্ণ সিলেবাস কোর্স", instructor: "আব্দুল করিম", price: "২,০০০", image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80" },
-  { id: 4, title: "ক্র্যাশ কোর্স", instructor: "নাজমুল হাসান", price: "৮০০", image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&q=80" },
-];
+import { useCoursesByCategory, useCategoryBySlug } from "@/hooks/useCourses";
 
 const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const categoryName = categoryNames[slug || ""] || "ক্যাটাগরি";
+  const { data: category, isLoading: categoryLoading } = useCategoryBySlug(slug || "");
+  const { data: courses, isLoading: coursesLoading } = useCoursesByCategory(category?.id || "");
+
+  const isLoading = categoryLoading || coursesLoading;
 
   return (
     <>
@@ -54,10 +35,10 @@ const CategoryPage = () => {
                 হোম
               </Link>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-                <span className="gradient-text">{categoryName}</span>
+                <span className="gradient-text">{category?.name || "ক্যাটাগরি"}</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl">
-                এই ক্যাটাগরির সকল কোর্স দেখুন এবং আপনার প্রয়োজনীয় কোর্সে ভর্তি হন।
+                {category?.description || "এই ক্যাটাগরির সকল কোর্স দেখুন এবং আপনার প্রয়োজনীয় কোর্সে ভর্তি হন।"}
               </p>
             </motion.div>
           </div>
@@ -65,45 +46,112 @@ const CategoryPage = () => {
 
         {/* Courses Grid */}
         <section className="section-container">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {coursesData.map((course, index) => (
-              <motion.div
-                key={course.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="bg-card rounded-xl border border-border overflow-hidden shadow-sm card-hover"
-              >
-                <div className="relative h-40 overflow-hidden">
-                  <img
-                    src={course.image}
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4">
-                  <h4 className="font-semibold text-foreground mb-2 line-clamp-2">{course.title}</h4>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                    <User className="w-4 h-4" />
-                    <span>{course.instructor}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-primary">৳{course.price}</span>
-                    <Button size="sm" className="gradient-primary">
-                      বিস্তারিত
-                    </Button>
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-card rounded-xl border border-border overflow-hidden animate-pulse">
+                  <div className="h-40 bg-muted" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-3 bg-muted rounded w-1/2" />
+                    <div className="h-8 bg-muted rounded" />
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : courses?.length === 0 ? (
+            <div className="text-center py-16">
+              <BookOpen className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-xl font-semibold mb-2">এই ক্যাটাগরিতে কোনো কোর্স নেই</h3>
+              <p className="text-muted-foreground mb-6">শীঘ্রই নতুন কোর্স যোগ করা হবে</p>
+              <Link to="/courses">
+                <Button className="gradient-primary">সব কোর্স দেখুন</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {courses?.map((course, index) => (
+                <motion.div
+                  key={course.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                  className="bg-card rounded-xl border border-border overflow-hidden shadow-sm card-hover"
+                >
+                  <Link to={`/course/${course.slug}`}>
+                    <div className="relative h-40 overflow-hidden">
+                      {course.thumbnail_url ? (
+                        <img
+                          src={course.thumbnail_url}
+                          alt={course.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary via-secondary to-vibrant-pink flex items-center justify-center">
+                          <BookOpen className="w-12 h-12 text-white/80" />
+                        </div>
+                      )}
+                      {course.discount_price && (
+                        <div className="absolute top-2 right-2 px-2 py-1 text-xs font-medium rounded-full bg-destructive text-destructive-foreground">
+                          {Math.round((1 - course.discount_price / course.price) * 100)}% ছাড়
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                  <div className="p-4">
+                    <Link to={`/course/${course.slug}`}>
+                      <h4 className="font-semibold text-foreground mb-2 line-clamp-2 hover:text-primary transition-colors">
+                        {course.title}
+                      </h4>
+                    </Link>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                      <User className="w-4 h-4" />
+                      <span>{course.instructor?.name || "শিক্ষক"}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                      {course.duration_hours && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{course.duration_hours} ঘন্টা</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        <span>{course.total_students || 0}+</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-golden">
+                        <Star className="w-3 h-3 fill-golden" />
+                        <span>4.8</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-primary">
+                          ৳{(course.discount_price || course.price).toLocaleString()}
+                        </span>
+                        {course.discount_price && (
+                          <span className="text-xs text-muted-foreground line-through">
+                            ৳{course.price.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                      <Link to={`/course/${course.slug}`}>
+                        <Button size="sm" className="gradient-primary">
+                          বিস্তারিত
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
 
       <Footer />
-      <MobileNavigation />
     </>
   );
 };

@@ -121,3 +121,43 @@ export const useCoursesByCategorySlug = (categorySlug: string) => {
     enabled: !!categorySlug,
   });
 };
+
+export const useCategoryBySlug = (slug: string) => {
+  return useQuery({
+    queryKey: ["category", slug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!slug,
+  });
+};
+
+export const useCoursesByCategory = (categoryId: string) => {
+  return useQuery({
+    queryKey: ["courses", "categoryId", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("courses")
+        .select(`
+          *,
+          category:categories(id, name, slug),
+          instructor:teachers(id, name, title, avatar_url)
+        `)
+        .eq("category_id", categoryId)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as Course[];
+    },
+    enabled: !!categoryId,
+  });
+};
