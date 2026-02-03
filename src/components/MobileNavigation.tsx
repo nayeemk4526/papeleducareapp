@@ -1,24 +1,41 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, Grid3X3, LayoutDashboard, User } from "lucide-react";
+import { Home, Grid3X3, LayoutDashboard, User, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { name: "হোম", href: "/", icon: Home },
-  { name: "ক্যাটাগরি", href: "/courses", icon: Grid3X3 },
-  { name: "ড্যাসবোর্ড", href: "/dashboard", icon: LayoutDashboard },
-  { name: "প্রোফাইল", href: "/login", icon: User },
-];
+import { useAuth } from "@/contexts/AuthContext";
 
 const MobileNavigation = () => {
   const location = useLocation();
+  const { user, isAdmin } = useAuth();
+
+  const navItems = [
+    { name: "হোম", href: "/", icon: Home },
+    { name: "কোর্স", href: "/courses", icon: Grid3X3 },
+    { 
+      name: isAdmin ? "অ্যাডমিন" : "ড্যাশবোর্ড", 
+      href: isAdmin ? "/admin" : "/dashboard", 
+      icon: isAdmin ? Settings : LayoutDashboard,
+      requiresAuth: true 
+    },
+    { 
+      name: "প্রোফাইল", 
+      href: user ? "/dashboard/profile" : "/auth", 
+      icon: User 
+    },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-background/95 backdrop-blur-md border-t border-border safe-bottom">
       <div className="flex items-center justify-around py-2 px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.href;
+          const isActive = location.pathname === item.href || 
+            (item.href !== "/" && location.pathname.startsWith(item.href));
+
+          // Skip auth-required items if not logged in
+          if (item.requiresAuth && !user) {
+            return null;
+          }
 
           return (
             <Link

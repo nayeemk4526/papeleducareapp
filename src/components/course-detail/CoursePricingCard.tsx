@@ -104,20 +104,8 @@ const CoursePricingCard = ({ course, onPlayPreview, onPlayHowToEnroll }: CourseP
         </Button>
       )}
 
-      {/* How to Buy Button */}
-      {course.how_to_enroll_video_url && (
-        <Button
-          variant="outline"
-          className="w-full mb-4"
-          onClick={onPlayHowToEnroll}
-        >
-          <Play className="w-4 h-4 mr-2" />
-          কিভাবে কোর্সটি কিনবেন?
-        </Button>
-      )}
-
       {/* Features */}
-      <div className="space-y-3 pt-4 border-t border-border">
+      <div className="space-y-3 pt-4 border-t border-border mb-4">
         {features.map((feature, index) => {
           const Icon = feature.icon;
           return (
@@ -128,6 +116,18 @@ const CoursePricingCard = ({ course, onPlayPreview, onPlayHowToEnroll }: CourseP
           );
         })}
       </div>
+
+      {/* How to Buy Button - Below Features */}
+      {course.how_to_enroll_video_url && (
+        <Button
+          variant="outline"
+          className="w-full border-primary text-primary hover:bg-primary/10"
+          onClick={onPlayHowToEnroll}
+        >
+          <Play className="w-4 h-4 mr-2" />
+          কিভাবে কোর্সটি কিনবেন?
+        </Button>
+      )}
     </motion.div>
   );
 };
