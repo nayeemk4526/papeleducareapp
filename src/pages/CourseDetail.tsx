@@ -87,7 +87,7 @@ const CourseDetail = () => {
                 </motion.div>
 
                 {/* What You'll Learn */}
-                <WhatYouLearn />
+                <WhatYouLearn courseId={course.id} />
 
                 {/* Curriculum */}
                 <CourseCurriculum 

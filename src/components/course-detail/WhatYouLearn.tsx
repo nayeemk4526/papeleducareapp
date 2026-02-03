@@ -1,20 +1,33 @@
 import { motion } from "framer-motion";
 import { CheckCircle, Lightbulb } from "lucide-react";
+import { useCourseLearningOutcomes } from "@/hooks/useCourseLearningOutcomes";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface WhatYouLearnProps {
-  items?: string[];
+  courseId: string;
 }
 
-const defaultItems = [
-  "বেসিক থেকে অ্যাডভান্সড কনসেপ্ট",
-  "হ্যান্ডস-অন প্র্যাক্টিস",
-  "রিয়েল-ওয়ার্ল্ড প্রজেক্ট",
-  "ইন্ডাস্ট্রি স্ট্যান্ডার্ড টেকনিক",
-  "প্রফেশনাল টিপস ও ট্রিকস",
-  "সার্টিফিকেশন প্রস্তুতি",
-];
+const WhatYouLearn = ({ courseId }: WhatYouLearnProps) => {
+  const { data: outcomes, isLoading } = useCourseLearningOutcomes(courseId);
 
-const WhatYouLearn = ({ items = defaultItems }: WhatYouLearnProps) => {
+  if (isLoading) {
+    return (
+      <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl p-6 border border-border mb-8">
+        <Skeleton className="h-6 w-32 mb-4" />
+        <div className="grid md:grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-6 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Don't show if no outcomes exist
+  if (!outcomes || outcomes.length === 0) {
+    return null;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -27,9 +40,9 @@ const WhatYouLearn = ({ items = defaultItems }: WhatYouLearnProps) => {
         যা শিখবেন
       </h3>
       <div className="grid md:grid-cols-2 gap-3">
-        {items.map((item, index) => (
+        {outcomes.map((outcome, index) => (
           <motion.div 
-            key={index} 
+            key={outcome.id} 
             className="flex items-start gap-2"
             initial={{ opacity: 0, x: -10 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -37,7 +50,7 @@ const WhatYouLearn = ({ items = defaultItems }: WhatYouLearnProps) => {
             transition={{ delay: index * 0.05 }}
           >
             <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-            <span className="text-sm">{item}</span>
+            <span className="text-sm">{outcome.content}</span>
           </motion.div>
         ))}
       </div>

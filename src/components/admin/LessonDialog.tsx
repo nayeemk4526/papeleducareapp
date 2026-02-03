@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,26 +11,58 @@ interface LessonDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   courseId: string;
+  sectionId?: string;
   lesson?: any;
   nextOrder?: number;
 }
 
-const LessonDialog = ({ open, onOpenChange, courseId, lesson, nextOrder = 1 }: LessonDialogProps) => {
+const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrder = 1 }: LessonDialogProps) => {
   const isEdit = !!lesson;
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();
 
   const [formData, setFormData] = useState<LessonFormData>({
     course_id: courseId,
-    title: lesson?.title || "",
-    description: lesson?.description || "",
-    video_url: lesson?.video_url || "",
-    video_duration_minutes: lesson?.video_duration_minutes || undefined,
-    lesson_order: lesson?.lesson_order || nextOrder,
-    is_free_preview: lesson?.is_free_preview ?? false,
-    is_published: lesson?.is_published ?? true,
-    materials_url: lesson?.materials_url || "",
+    section_id: sectionId,
+    title: "",
+    description: "",
+    video_url: "",
+    video_duration_minutes: undefined,
+    lesson_order: nextOrder,
+    is_free_preview: false,
+    is_published: true,
+    materials_url: "",
   });
+
+  useEffect(() => {
+    if (lesson) {
+      setFormData({
+        course_id: courseId,
+        section_id: lesson.section_id || sectionId,
+        title: lesson.title || "",
+        description: lesson.description || "",
+        video_url: lesson.video_url || "",
+        video_duration_minutes: lesson.video_duration_minutes || undefined,
+        lesson_order: lesson.lesson_order || nextOrder,
+        is_free_preview: lesson.is_free_preview ?? false,
+        is_published: lesson.is_published ?? true,
+        materials_url: lesson.materials_url || "",
+      });
+    } else {
+      setFormData({
+        course_id: courseId,
+        section_id: sectionId,
+        title: "",
+        description: "",
+        video_url: "",
+        video_duration_minutes: undefined,
+        lesson_order: nextOrder,
+        is_free_preview: false,
+        is_published: true,
+        materials_url: "",
+      });
+    }
+  }, [lesson, courseId, sectionId, nextOrder]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface LessonFormData {
   course_id: string;
+  section_id?: string;
   title: string;
   description?: string;
   video_url?: string;

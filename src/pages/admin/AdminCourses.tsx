@@ -25,9 +25,10 @@ import LessonDialog from "@/components/admin/LessonDialog";
 import EnrollmentDialog from "@/components/admin/EnrollmentDialog";
 import { useAdminCourses, useDeleteCourse } from "@/hooks/useAdminCourses";
 import { useAdminLessons } from "@/hooks/useAdminLessons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const AdminCourses = () => {
+  const navigate = useNavigate();
   const { data: courses, isLoading } = useAdminCourses();
   const deleteCourse = useDeleteCourse();
   
@@ -188,6 +189,10 @@ const AdminCourses = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => navigate(`/admin/courses/${course.id}`)}>
+                              <BookOpen className="w-4 h-4 mr-2" />
+                              কনটেন্ট ম্যানেজ
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEdit(course)}>
                               <Edit className="w-4 h-4 mr-2" />
                               সম্পাদনা

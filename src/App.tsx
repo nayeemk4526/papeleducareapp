@@ -28,6 +28,7 @@ import ProfileSettings from "./pages/dashboard/ProfileSettings";
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCourses from "./pages/admin/AdminCourses";
+import AdminCourseManagement from "./pages/admin/AdminCourseManagement";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminCategories from "./pages/admin/AdminCategories";
@@ -75,6 +76,7 @@ const App = () => (
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/courses" element={<AdminCourses />} />
+                <Route path="/admin/courses/:courseId" element={<AdminCourseManagement />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/payments" element={<AdminPayments />} />
                 <Route path="/admin/categories" element={<AdminCategories />} />
