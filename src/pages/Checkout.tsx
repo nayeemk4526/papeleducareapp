@@ -16,9 +16,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const paymentMethods = [
-  { id: "bkash", name: "বিকাশ", color: "#E2136E", number: "01XXXXXXXXX" },
-  { id: "nagad", name: "নগদ", color: "#F6921E", number: "01XXXXXXXXX" },
-  { id: "rocket", name: "রকেট", color: "#8C3494", number: "01XXXXXXXXX" },
+  { id: "bkash-merchant", name: "বিকাশ মার্চেন্ট", color: "#E2136E", number: null, isMerchant: true },
+  { id: "bkash", name: "বিকাশ", color: "#E2136E", number: "01XXXXXXXXX", isMerchant: false },
+  { id: "nagad", name: "নগদ", color: "#F6921E", number: "01XXXXXXXXX", isMerchant: false },
+  { id: "rocket", name: "রকেট", color: "#8C3494", number: "01XXXXXXXXX", isMerchant: false },
 ];
 
 const Checkout = () => {
@@ -29,7 +30,7 @@ const Checkout = () => {
   
   const { data: course, isLoading } = useCourseById(courseId || "");
   
-  const [selectedMethod, setSelectedMethod] = useState("bkash");
+  const [selectedMethod, setSelectedMethod] = useState("bkash-merchant");
   const [transactionId, setTransactionId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -77,6 +78,8 @@ const Checkout = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const isMerchantPayment = selectedPayment?.isMerchant;
+    
     // Validate billing info
     if (!billingInfo.fullName.trim()) {
       toast({
@@ -105,7 +108,8 @@ const Checkout = () => {
       return;
     }
 
-    if (!transactionId.trim()) {
+    // Only require transaction ID for manual payments
+    if (!isMerchantPayment && !transactionId.trim()) {
       toast({
         title: "ত্রুটি",
         description: "ট্রানজেকশন আইডি দিন",
@@ -117,32 +121,59 @@ const Checkout = () => {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("process-payment", {
-        body: {
-          course_id: course.id,
-          amount: finalPrice,
-          payment_method: selectedMethod,
-          transaction_id: transactionId.trim(),
-          phone_number: billingInfo.phone.trim(),
-          billing_info: {
-            full_name: billingInfo.fullName,
-            email: billingInfo.email,
-            institute: billingInfo.institute,
-            address: billingInfo.address,
+      if (isMerchantPayment) {
+        // bKash Merchant Payment - call bkash-payment edge function
+        const { data, error } = await supabase.functions.invoke("bkash-payment", {
+          body: {
+            course_id: course.id,
+            amount: finalPrice,
+            phone_number: billingInfo.phone.trim(),
+            billing_info: {
+              full_name: billingInfo.fullName,
+              email: billingInfo.email,
+              institute: billingInfo.institute,
+              address: billingInfo.address,
+            },
           },
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        setIsSuccess(true);
-        toast({
-          title: "সফল!",
-          description: data.message,
         });
+
+        if (error) throw error;
+
+        if (data.success && data.bkashURL) {
+          // Redirect to bKash payment page
+          window.location.href = data.bkashURL;
+        } else {
+          throw new Error(data.error || "বিকাশ পেমেন্ট শুরু করতে সমস্যা হয়েছে");
+        }
       } else {
-        throw new Error(data.error || "পেমেন্ট প্রসেস করতে সমস্যা হয়েছে");
+        // Manual Payment
+        const { data, error } = await supabase.functions.invoke("process-payment", {
+          body: {
+            course_id: course.id,
+            amount: finalPrice,
+            payment_method: selectedMethod,
+            transaction_id: transactionId.trim(),
+            phone_number: billingInfo.phone.trim(),
+            billing_info: {
+              full_name: billingInfo.fullName,
+              email: billingInfo.email,
+              institute: billingInfo.institute,
+              address: billingInfo.address,
+            },
+          },
+        });
+
+        if (error) throw error;
+
+        if (data.success) {
+          setIsSuccess(true);
+          toast({
+            title: "সফল!",
+            description: data.message,
+          });
+        } else {
+          throw new Error(data.error || "পেমেন্ট প্রসেস করতে সমস্যা হয়েছে");
+        }
       }
     } catch (error: any) {
       console.error("Payment error:", error);
@@ -322,7 +353,7 @@ const Checkout = () => {
                         <RadioGroup
                           value={selectedMethod}
                           onValueChange={setSelectedMethod}
-                          className="grid grid-cols-3 gap-3"
+                          className="grid grid-cols-2 sm:grid-cols-4 gap-3"
                         >
                           {paymentMethods.map((method) => (
                             <div key={method.id}>
@@ -349,44 +380,61 @@ const Checkout = () => {
                       </div>
 
                       {/* Payment Instructions */}
-                      <div className="bg-muted/50 rounded-xl p-4 space-y-3">
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
-                          <div>
-                            <p className="font-medium">পেমেন্ট নির্দেশনা:</p>
-                            <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1 mt-2">
-                              <li>
-                                <span style={{ color: selectedPayment?.color }} className="font-medium">
-                                  {selectedPayment?.name}
-                                </span> অ্যাপ ওপেন করুন
-                              </li>
-                              <li>"Send Money" অপশনে যান</li>
-                              <li>
-                                নম্বর: <span className="font-mono font-bold">{selectedPayment?.number}</span>
-                              </li>
-                              <li>
-                                পরিমাণ: <span className="font-bold text-primary">৳{finalPrice.toLocaleString()}</span>
-                              </li>
-                              <li>পেমেন্ট সম্পন্ন করে Transaction ID কপি করুন</li>
-                            </ol>
+                      {selectedPayment?.isMerchant ? (
+                        <div className="bg-muted/50 rounded-xl p-4 space-y-3">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
+                            <div>
+                              <p className="font-medium">বিকাশ মার্চেন্ট পেমেন্ট:</p>
+                              <p className="text-sm text-muted-foreground mt-2">
+                                "পেমেন্ট করুন" বাটনে ক্লিক করলে আপনাকে বিকাশ মার্চেন্ট পেমেন্ট পেজে নিয়ে যাওয়া হবে।
+                                সেখানে পেমেন্ট সম্পন্ন করলে স্বয়ংক্রিয়ভাবে আপনার কোর্সে এনরোলমেন্ট হয়ে যাবে।
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="bg-muted/50 rounded-xl p-4 space-y-3">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
+                            <div>
+                              <p className="font-medium">পেমেন্ট নির্দেশনা:</p>
+                              <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1 mt-2">
+                                <li>
+                                  <span style={{ color: selectedPayment?.color }} className="font-medium">
+                                    {selectedPayment?.name}
+                                  </span> অ্যাপ ওপেন করুন
+                                </li>
+                                <li>"Send Money" অপশনে যান</li>
+                                <li>
+                                  নম্বর: <span className="font-mono font-bold">{selectedPayment?.number}</span>
+                                </li>
+                                <li>
+                                  পরিমাণ: <span className="font-bold text-primary">৳{finalPrice.toLocaleString()}</span>
+                                </li>
+                                <li>পেমেন্ট সম্পন্ন করে Transaction ID কপি করুন</li>
+                              </ol>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
-                      {/* Transaction ID */}
-                      <div className="space-y-2">
-                        <Label htmlFor="transaction-id">Transaction ID *</Label>
-                        <Input
-                          id="transaction-id"
-                          placeholder="যেমন: 8N7XXXXX"
-                          value={transactionId}
-                          onChange={(e) => setTransactionId(e.target.value)}
-                          required
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          পেমেন্ট করার পর প্রাপ্ত Transaction ID এখানে দিন
-                        </p>
-                      </div>
+                      {/* Transaction ID - only for manual payments */}
+                      {!selectedPayment?.isMerchant && (
+                        <div className="space-y-2">
+                          <Label htmlFor="transaction-id">Transaction ID *</Label>
+                          <Input
+                            id="transaction-id"
+                            placeholder="যেমন: 8N7XXXXX"
+                            value={transactionId}
+                            onChange={(e) => setTransactionId(e.target.value)}
+                            required
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            পেমেন্ট করার পর প্রাপ্ত Transaction ID এখানে দিন
+                          </p>
+                        </div>
+                      )}
 
                       <Button
                         type="submit"
@@ -399,6 +447,8 @@ const Checkout = () => {
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                             প্রসেস হচ্ছে...
                           </span>
+                        ) : selectedPayment?.isMerchant ? (
+                          "বিকাশ দিয়ে পেমেন্ট করুন"
                         ) : (
                           "পেমেন্ট জমা দিন"
                         )}
