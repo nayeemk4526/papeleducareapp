@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Loader2, Youtube, Check } from "lucide-react";
 import { useCreateLesson, useUpdateLesson, type LessonFormData } from "@/hooks/useAdminLessons";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface LessonDialogProps {
   open: boolean;
@@ -20,6 +23,7 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
   const isEdit = !!lesson;
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState<LessonFormData>({
     course_id: courseId,
@@ -33,6 +37,9 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
     is_published: true,
     materials_url: "",
   });
+
+  const [isFetchingDuration, setIsFetchingDuration] = useState(false);
+  const [durationFetched, setDurationFetched] = useState(false);
 
   useEffect(() => {
     if (lesson) {
@@ -48,6 +55,7 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
         is_published: lesson.is_published ?? true,
         materials_url: lesson.materials_url || "",
       });
+      setDurationFetched(false);
     } else {
       setFormData({
         course_id: courseId,
@@ -61,8 +69,67 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
         is_published: true,
         materials_url: "",
       });
+      setDurationFetched(false);
     }
   }, [lesson, courseId, sectionId, nextOrder]);
+
+  const isYouTubeUrl = (url: string) => {
+    return url.includes('youtube.com') || url.includes('youtu.be');
+  };
+
+  const fetchYouTubeDuration = async (videoUrl: string) => {
+    if (!isYouTubeUrl(videoUrl)) {
+      toast({
+        title: "সতর্কতা",
+        description: "শুধুমাত্র YouTube ভিডিওর সময়কাল অটো-ফেচ করা যায়",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsFetchingDuration(true);
+    setDurationFetched(false);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('get-youtube-info', {
+        body: { videoUrl },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        video_duration_minutes: data.durationMinutes,
+      }));
+
+      setDurationFetched(true);
+
+      toast({
+        title: "সফল!",
+        description: `ভিডিওর সময়কাল: ${data.durationMinutes} মিনিট`,
+      });
+    } catch (error) {
+      console.error('Error fetching YouTube info:', error);
+      toast({
+        title: "ত্রুটি",
+        description: error instanceof Error ? error.message : "ভিডিওর তথ্য আনতে সমস্যা হয়েছে",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetchingDuration(false);
+    }
+  };
+
+  const handleVideoUrlChange = (url: string) => {
+    setFormData({ ...formData, video_url: url });
+    setDurationFetched(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,13 +172,37 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="video_url">ভিডিও URL</Label>
-            <Input
-              id="video_url"
-              value={formData.video_url || ""}
-              onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-              placeholder="https://youtube.com/watch?v=... or Vimeo URL"
-            />
+            <Label htmlFor="video_url">ভিডিও URL (YouTube)</Label>
+            <div className="flex gap-2">
+              <Input
+                id="video_url"
+                value={formData.video_url || ""}
+                onChange={(e) => handleVideoUrlChange(e.target.value)}
+                placeholder="https://youtube.com/watch?v=... বা https://youtu.be/..."
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => formData.video_url && fetchYouTubeDuration(formData.video_url)}
+                disabled={!formData.video_url || isFetchingDuration || !isYouTubeUrl(formData.video_url || "")}
+                title="YouTube থেকে সময়কাল আনুন"
+              >
+                {isFetchingDuration ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : durationFetched ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Youtube className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            {formData.video_url && isYouTubeUrl(formData.video_url) && !durationFetched && (
+              <p className="text-xs text-muted-foreground">
+                YouTube আইকনে ক্লিক করে ভিডিওর সময়কাল অটো-ফেচ করুন
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -122,6 +213,7 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
                 type="number"
                 value={formData.video_duration_minutes || ""}
                 onChange={(e) => setFormData({ ...formData, video_duration_minutes: e.target.value ? Number(e.target.value) : undefined })}
+                placeholder="অটো-ফেচ করুন বা ম্যানুয়ালি দিন"
               />
             </div>
 
