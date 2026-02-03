@@ -29,8 +29,9 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Verify user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Extract token and verify user
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
       console.error("User verification failed:", userError);
       return new Response(
