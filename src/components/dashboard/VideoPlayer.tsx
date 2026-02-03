@@ -28,11 +28,10 @@ const VideoPlayer = ({ src, title, onComplete, onTimeUpdate, className }: VideoP
   const getVideoEmbedUrl = (url: string): { type: "iframe" | "video"; src: string } => {
     if (!url) return { type: "video", src: "" };
 
-    // YouTube
-    const youtubeMatch = url.match(
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
-    );
-    if (youtubeMatch) {
+    // YouTube - handle all formats including youtu.be
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const youtubeMatch = url.match(youtubeRegex);
+    if (youtubeMatch && youtubeMatch[1]) {
       return {
         type: "iframe",
         src: `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=0&rel=0`,
