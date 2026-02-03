@@ -3,47 +3,11 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useEmblaCarousel from "embla-carousel-react";
-
-const teachers = [
-  {
-    id: 1,
-    name: "ইঞ্জি. রাকিব হাসান",
-    title: "ইলেকট্রনিক্স বিভাগ",
-    subtitle: "BUET প্রভাষক",
-  },
-  {
-    id: 2,
-    name: "ইঞ্জি. সাদিয়া আক্তার",
-    title: "ইলেকট্রিক্যাল বিভাগ",
-    subtitle: "DUET প্রভাষক",
-  },
-  {
-    id: 3,
-    name: "ইঞ্জি. তানভীর আহমেদ",
-    title: "কম্পিউটার বিভাগ",
-    subtitle: "CUET প্রভাষক",
-  },
-  {
-    id: 4,
-    name: "ইঞ্জি. মাহমুদ হোসেন",
-    title: "সিভিল বিভাগ",
-    subtitle: "RUET প্রভাষক",
-  },
-  {
-    id: 5,
-    name: "ইঞ্জি. শাহরিয়ার কবির",
-    title: "মেকানিক্যাল বিভাগ",
-    subtitle: "KUET প্রভাষক",
-  },
-  {
-    id: 6,
-    name: "আর্কি. নুসরাত জাহান",
-    title: "আর্কিটেকচার বিভাগ",
-    subtitle: "BUET প্রভাষক",
-  },
-];
+import { useTeachers } from "@/hooks/useTeachers";
 
 const TeachersPanel = () => {
+  const { data: teachers, isLoading } = useTeachers();
+  
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
@@ -62,6 +26,32 @@ const TeachersPanel = () => {
 
     return () => clearInterval(autoplay);
   }, [emblaApi]);
+
+  if (isLoading) {
+    return (
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <div className="h-8 bg-muted rounded w-48 mx-auto mb-4 animate-pulse" />
+            <div className="h-12 bg-muted rounded w-96 mx-auto animate-pulse" />
+          </div>
+          <div className="flex gap-6 overflow-hidden">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="min-w-[200px] md:min-w-[240px] bg-card rounded-2xl p-6 animate-pulse">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted" />
+                <div className="h-4 bg-muted rounded w-3/4 mx-auto mb-2" />
+                <div className="h-3 bg-muted rounded w-1/2 mx-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!teachers?.length) {
+    return null;
+  }
 
   return (
     <section className="py-16 md:py-24">
@@ -94,16 +84,24 @@ const TeachersPanel = () => {
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex gap-6">
-              {teachers.map((teacher) => (
+              {teachers?.map((teacher) => (
                 <div key={teacher.id} className="flex-shrink-0 min-w-[200px] md:min-w-[240px]">
                   <motion.div
                     whileHover={{ y: -8 }}
                     className="bg-card rounded-2xl p-6 border border-border/50 shadow-sm hover:shadow-lg transition-all duration-300 text-center"
                   >
                     {/* Avatar */}
-                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-secondary via-vibrant-pink to-primary flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                      {teacher.name.split(" ").pop()?.charAt(0)}
-                    </div>
+                    {teacher.avatar_url ? (
+                      <img
+                        src={teacher.avatar_url}
+                        alt={teacher.name}
+                        className="w-20 h-20 mx-auto mb-4 rounded-full object-cover shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-secondary via-vibrant-pink to-primary flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                        {teacher.name.charAt(0)}
+                      </div>
+                    )}
 
                     {/* Info */}
                     <h4 className="font-bold text-foreground mb-1 text-base">
@@ -115,6 +113,20 @@ const TeachersPanel = () => {
                     <p className="text-xs text-muted-foreground">
                       {teacher.subtitle}
                     </p>
+
+                    {/* Specializations */}
+                    {teacher.specializations && teacher.specializations.length > 0 && (
+                      <div className="flex flex-wrap gap-1 justify-center mt-3">
+                        {teacher.specializations.slice(0, 3).map((spec, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-0.5 text-xs rounded-full bg-muted text-muted-foreground"
+                          >
+                            {spec}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </motion.div>
                 </div>
               ))}
