@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ const CourseDialog = ({ open, onOpenChange, course }: CourseDialogProps) => {
   const createCourse = useCreateCourse();
   const updateCourse = useUpdateCourse();
 
-  const [formData, setFormData] = useState<CourseFormData>({
+  const getInitialFormData = (): CourseFormData => ({
     title: course?.title || "",
     slug: course?.slug || "",
     description: course?.description || "",
@@ -40,6 +40,15 @@ const CourseDialog = ({ open, onOpenChange, course }: CourseDialogProps) => {
     is_published: course?.is_published ?? false,
     is_featured: course?.is_featured ?? false,
   });
+
+  const [formData, setFormData] = useState<CourseFormData>(getInitialFormData());
+
+  // Reset form when course changes or dialog opens
+  useEffect(() => {
+    if (open) {
+      setFormData(getInitialFormData());
+    }
+  }, [open, course]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
