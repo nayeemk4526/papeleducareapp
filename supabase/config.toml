@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.get-youtube-info]
 verify_jwt = false
+
+[functions.bkash-payment]
+verify_jwt = false
+
+[functions.bkash-callback]
+verify_jwt = false
