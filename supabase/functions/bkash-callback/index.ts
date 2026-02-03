@@ -194,7 +194,7 @@ function redirectToResult(
 ) {
   const redirectUrl =
     status === "success"
-      ? `${origin}/dashboard/my-courses?payment=success`
+      ? `${origin}/dashboard?payment=success`
       : `${origin}/checkout/${courseId || ""}?payment=${status}&message=${encodeURIComponent(message)}`;
 
   return new Response(null, {
