@@ -5,6 +5,7 @@ import { Menu, X, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
+import logoImage from "@/assets/logo.png";
 
 const navLinks = [
   { name: "হোম", href: "/" },
@@ -48,17 +49,17 @@ const Navbar = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             {/* Logo - Left */}
-            <Link to="/" className="flex items-center gap-3">
-              <motion.div
-                whileHover={{ scale: 1.05, rotate: 5 }}
+            <Link to="/" className="flex items-center gap-2">
+              <motion.img
+                src={logoImage}
+                alt="পাপেল এডু-কেয়ার"
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-11 h-11 rounded-full bg-gradient-to-br from-secondary to-vibrant-pink flex items-center justify-center shadow-lg"
-              >
-                <span className="text-xl font-bold text-white">প</span>
-              </motion.div>
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-contain"
+              />
               <div className="hidden sm:block">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-secondary via-vibrant-pink to-primary bg-clip-text text-transparent">
-                  পাপেল এডু-কেয়ার
+                <h1 className="text-lg font-bold bg-gradient-to-r from-[#3B82F6] to-[#F59E0B] bg-clip-text text-transparent">
+                  Papel Edu-Care
                 </h1>
                 <p className="text-xs text-muted-foreground -mt-0.5">শিক্ষার নতুন দিগন্ত</p>
               </div>

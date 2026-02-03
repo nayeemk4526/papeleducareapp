@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Target, Eye, Heart, Users } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import MobileNavigation from "@/components/MobileNavigation";
 
 const values = [
   {
@@ -36,9 +35,9 @@ const About = () => {
     <>
       <Navbar />
       
-      <main className="pt-20 pb-16 lg:pb-0">
+      <main className="pt-20">
         {/* Hero Section */}
-        <section className="relative py-16 md:py-24 overflow-hidden">
+        <section className="relative py-12 md:py-24 overflow-hidden">
           <div className="absolute inset-0 gradient-primary opacity-10" />
           <div className="container mx-auto px-4 relative z-10">
             <motion.div
@@ -47,10 +46,10 @@ const About = () => {
               transition={{ duration: 0.5 }}
               className="text-center max-w-3xl mx-auto"
             >
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+              <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6">
                 <span className="gradient-text">আমাদের সম্পর্কে</span>
               </h1>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-base md:text-lg text-muted-foreground px-4">
                 পাপেল এডু-কেয়ার বাংলাদেশের অন্যতম শীর্ষস্থানীয় অনলাইন শিক্ষা প্ল্যাটফর্ম। 
                 আমরা ডিপ্লোমা, এসএসসি, এইচএসসি এবং স্কিল ডেভেলপমেন্ট কোর্সের মাধ্যমে 
                 হাজারো শিক্ষার্থীকে তাদের লক্ষ্যে পৌঁছাতে সাহায্য করছি।
@@ -60,98 +59,102 @@ const About = () => {
         </section>
 
         {/* Story Section */}
-        <section className="section-container">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl md:text-3xl font-bold mb-6">
-                <span className="gradient-text">আমাদের গল্প</span>
-              </h2>
-              <div className="space-y-4 text-muted-foreground">
-                <p>
-                  ২০২০ সালে করোনা মহামারীর সময় পাপেল এডু-কেয়ারের যাত্রা শুরু হয়। 
-                  যখন সারা দেশের শিক্ষাপ্রতিষ্ঠান বন্ধ ছিল, তখন আমরা অনলাইনে শিক্ষা 
-                  চালিয়ে যাওয়ার সিদ্ধান্ত নিই।
-                </p>
-                <p>
-                  শুরুতে ইউটিউবে ফ্রি ভিডিও দিয়ে শুরু করেছিলাম। শিক্ষার্থীদের 
-                  অভূতপূর্ব সাড়া পেয়ে আমরা একটি পূর্ণাঙ্গ প্ল্যাটফর্ম তৈরির 
-                  দিকে এগিয়ে যাই।
-                </p>
-                <p>
-                  আজ আমাদের ১ লক্ষ ৫০ হাজারের বেশি সাবস্ক্রাইবার এবং হাজারো 
-                  সফল শিক্ষার্থী রয়েছে যারা আমাদের কোর্স করে তাদের লক্ষ্যে 
-                  পৌঁছেছে।
-                </p>
-              </div>
-            </motion.div>
+        <section className="py-12 md:py-16 px-4">
+          <div className="container mx-auto">
+            <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <h2 className="text-xl md:text-3xl font-bold mb-4 md:mb-6">
+                  <span className="gradient-text">আমাদের গল্প</span>
+                </h2>
+                <div className="space-y-3 md:space-y-4 text-muted-foreground text-sm md:text-base">
+                  <p>
+                    ২০২০ সালে করোনা মহামারীর সময় পাপেল এডু-কেয়ারের যাত্রা শুরু হয়। 
+                    যখন সারা দেশের শিক্ষাপ্রতিষ্ঠান বন্ধ ছিল, তখন আমরা অনলাইনে শিক্ষা 
+                    চালিয়ে যাওয়ার সিদ্ধান্ত নিই।
+                  </p>
+                  <p>
+                    শুরুতে ইউটিউবে ফ্রি ভিডিও দিয়ে শুরু করেছিলাম। শিক্ষার্থীদের 
+                    অভূতপূর্ব সাড়া পেয়ে আমরা একটি পূর্ণাঙ্গ প্ল্যাটফর্ম তৈরির 
+                    দিকে এগিয়ে যাই।
+                  </p>
+                  <p>
+                    আজ আমাদের ১ লক্ষ ৫০ হাজারের বেশি সাবস্ক্রাইবার এবং হাজারো 
+                    সফল শিক্ষার্থী রয়েছে যারা আমাদের কোর্স করে তাদের লক্ষ্যে 
+                    পৌঁছেছে।
+                  </p>
+                </div>
+              </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="relative"
-            >
-              <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
-                <img
-                  src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80"
-                  alt="Team collaboration"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {/* Floating Stats */}
-              <div className="absolute -bottom-6 -left-6 bg-card rounded-xl p-4 shadow-lg border border-border">
-                <p className="text-3xl font-bold text-primary">১৫০K+</p>
-                <p className="text-sm text-muted-foreground">সাবস্ক্রাইবার</p>
-              </div>
-            </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="relative"
+              >
+                <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
+                  <img
+                    src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80"
+                    alt="Team collaboration"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {/* Floating Stats */}
+                <div className="absolute -bottom-4 -left-4 md:-bottom-6 md:-left-6 bg-card rounded-xl p-3 md:p-4 shadow-lg border border-border">
+                  <p className="text-2xl md:text-3xl font-bold text-primary">১৫০K+</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">সাবস্ক্রাইবার</p>
+                </div>
+              </motion.div>
+            </div>
           </div>
         </section>
 
         {/* Values Section */}
-        <section className="section-container bg-muted/30">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="section-heading">
-              <span className="gradient-text">আমাদের মূল্যবোধ ও লক্ষ্য</span>
-            </h2>
-          </motion.div>
+        <section className="py-12 md:py-16 px-4 bg-muted/30">
+          <div className="container mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 md:mb-12"
+            >
+              <h2 className="text-xl md:text-3xl font-bold">
+                <span className="gradient-text">আমাদের মূল্যবোধ ও লক্ষ্য</span>
+              </h2>
+            </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {values.map((value, index) => {
-              const Icon = value.icon;
-              return (
-                <motion.div
-                  key={value.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-card rounded-2xl p-6 border border-border card-hover"
-                >
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${value.color} flex items-center justify-center mb-4`}>
-                    <Icon className="w-7 h-7 text-white" />
-                  </div>
-                  <h3 className="font-bold text-lg mb-2 text-foreground">{value.title}</h3>
-                  <p className="text-sm text-muted-foreground">{value.description}</p>
-                </motion.div>
-              );
-            })}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {values.map((value, index) => {
+                const Icon = value.icon;
+                return (
+                  <motion.div
+                    key={value.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -5 }}
+                    className="bg-card rounded-xl md:rounded-2xl p-5 md:p-6 border border-border shadow-sm hover:shadow-lg transition-all"
+                  >
+                    <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br ${value.color} flex items-center justify-center mb-3 md:mb-4`}>
+                      <Icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                    </div>
+                    <h3 className="font-bold text-base md:text-lg mb-2 text-foreground">{value.title}</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">{value.description}</p>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         </section>
       </main>
 
       <Footer />
-      <MobileNavigation />
     </>
   );
 };

@@ -92,40 +92,40 @@ const Testimonials = () => {
         {/* Testimonials Carousel */}
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex gap-6">
+            <div className="flex gap-4 md:gap-6">
               {testimonials.map((testimonial) => (
-                <div key={testimonial.id} className="flex-shrink-0 min-w-[300px] md:min-w-[380px]">
+                <div key={testimonial.id} className="flex-shrink-0 w-[280px] md:w-[360px]">
                   <motion.div
                     whileHover={{ y: -5 }}
-                    className="bg-card rounded-2xl p-6 border border-border/50 shadow-sm hover:shadow-lg transition-all duration-300 h-full"
+                    className="bg-card rounded-xl md:rounded-2xl p-4 md:p-6 border border-border/50 shadow-sm hover:shadow-lg transition-all duration-300 h-full"
                   >
                     {/* Quote Icon */}
-                    <div className="mb-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-secondary to-vibrant-pink flex items-center justify-center">
-                        <Quote className="w-5 h-5 text-white" />
+                    <div className="mb-3 md:mb-4">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-secondary to-vibrant-pink flex items-center justify-center">
+                        <Quote className="w-4 h-4 md:w-5 md:h-5 text-white" />
                       </div>
                     </div>
 
                     {/* Content */}
-                    <p className="text-foreground mb-6 leading-relaxed text-base">
+                    <p className="text-foreground mb-4 md:mb-6 leading-relaxed text-sm md:text-base line-clamp-4">
                       "{testimonial.content}"
                     </p>
 
                     {/* Author */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-lg">
+                    <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-sm md:text-lg">
                         {testimonial.name.charAt(0)}
                       </div>
                       <div>
-                        <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
-                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                        <h4 className="font-semibold text-foreground text-sm md:text-base">{testimonial.name}</h4>
+                        <p className="text-xs md:text-sm text-muted-foreground">{testimonial.role}</p>
                       </div>
                     </div>
 
                     {/* Rating */}
-                    <div className="flex gap-1">
+                    <div className="flex gap-0.5 md:gap-1">
                       {Array.from({ length: testimonial.rating }).map((_, i) => (
-                        <Star key={i} className="w-4 h-4 text-golden fill-golden" />
+                        <Star key={i} className="w-3 h-3 md:w-4 md:h-4 text-golden fill-golden" />
                       ))}
                     </div>
                   </motion.div>
