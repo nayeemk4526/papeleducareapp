@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, CheckCircle, Clock, XCircle, Check, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,12 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/AuthContext";
+import AdminLayout from "@/components/admin/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { format } from "date-fns";
 
 interface Payment {
   id: string;
@@ -24,6 +22,7 @@ interface Payment {
   transaction_id: string;
   payment_date: string;
   gateway_response: any;
+  billing_info: any;
   profile?: {
     full_name: string;
     email: string;
@@ -35,8 +34,6 @@ interface Payment {
 }
 
 const AdminPayments = () => {
-  const navigate = useNavigate();
-  const { user, isAdmin, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -73,26 +70,7 @@ const AdminPayments = () => {
         profile: profileMap.get(payment.user_id) || null,
       })) as Payment[];
     },
-    enabled: isAdmin,
   });
-
-  useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        navigate("/auth", { replace: true });
-      } else if (!isAdmin) {
-        navigate("/dashboard", { replace: true });
-      }
-    }
-  }, [user, isAdmin, authLoading, navigate]);
-
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
-  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -178,154 +156,144 @@ const AdminPayments = () => {
   const totalRevenue = payments?.filter(p => p.status === "completed").reduce((sum, p) => sum + p.amount, 0) || 0;
   const pendingCount = payments?.filter(p => p.status === "pending").length || 0;
 
+  if (isLoading) {
+    return (
+      <AdminLayout title="পেমেন্ট ম্যানেজমেন্ট">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
-    <>
-      <Navbar />
-      
-      <main className="pt-20 min-h-screen bg-muted/30">
-        <div className="container mx-auto px-4 py-8">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">
-              <span className="gradient-text">পেমেন্ট ম্যানেজমেন্ট</span>
-            </h1>
-            <p className="text-muted-foreground">সকল পেমেন্ট যাচাই ও অনুমোদন করুন</p>
-          </motion.div>
+    <AdminLayout title="পেমেন্ট ম্যানেজমেন্ট" subtitle="সকল পেমেন্ট যাচাই ও অনুমোদন করুন">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-card rounded-xl p-4 border border-border">
+          <p className="text-sm text-muted-foreground">মোট রাজস্ব</p>
+          <p className="text-2xl font-bold text-green-600">৳{totalRevenue.toLocaleString()}</p>
+        </div>
+        <div className="bg-card rounded-xl p-4 border border-border">
+          <p className="text-sm text-muted-foreground">মোট পেমেন্ট</p>
+          <p className="text-2xl font-bold">{payments?.length || 0}</p>
+        </div>
+        <div className="bg-card rounded-xl p-4 border border-border relative">
+          <p className="text-sm text-muted-foreground">যাচাই প্রয়োজন</p>
+          <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
+          {pendingCount > 0 && (
+            <span className="absolute top-2 right-2 w-3 h-3 bg-yellow-500 rounded-full animate-pulse" />
+          )}
+        </div>
+        <div className="bg-card rounded-xl p-4 border border-border">
+          <p className="text-sm text-muted-foreground">সম্পন্ন</p>
+          <p className="text-2xl font-bold text-green-600">{payments?.filter(p => p.status === "completed").length || 0}</p>
+        </div>
+      </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-card rounded-xl p-4 border border-border">
-              <p className="text-sm text-muted-foreground">মোট রাজস্ব</p>
-              <p className="text-2xl font-bold text-green-600">৳{totalRevenue.toLocaleString()}</p>
-            </div>
-            <div className="bg-card rounded-xl p-4 border border-border">
-              <p className="text-sm text-muted-foreground">মোট পেমেন্ট</p>
-              <p className="text-2xl font-bold">{payments?.length || 0}</p>
-            </div>
-            <div className="bg-card rounded-xl p-4 border border-border relative">
-              <p className="text-sm text-muted-foreground">যাচাই প্রয়োজন</p>
-              <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
-              {pendingCount > 0 && (
-                <span className="absolute top-2 right-2 w-3 h-3 bg-yellow-500 rounded-full animate-pulse" />
-              )}
-            </div>
-            <div className="bg-card rounded-xl p-4 border border-border">
-              <p className="text-sm text-muted-foreground">সম্পন্ন</p>
-              <p className="text-2xl font-bold text-green-600">{payments?.filter(p => p.status === "completed").length || 0}</p>
-            </div>
-          </div>
+      {/* Search */}
+      <div className="relative max-w-md mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        <Input
+          placeholder="নাম, কোর্স বা Transaction ID দিয়ে খুঁজুন..."
+          className="pl-10"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
 
-          {/* Search */}
-          <div className="relative max-w-md mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder="নাম, কোর্স বা Transaction ID দিয়ে খুঁজুন..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          {/* Payments Table */}
-          <div className="bg-card rounded-xl border border-border overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left p-4 font-medium">ইউজার</th>
-                    <th className="text-left p-4 font-medium hidden md:table-cell">কোর্স</th>
-                    <th className="text-left p-4 font-medium">পরিমাণ</th>
-                    <th className="text-left p-4 font-medium hidden lg:table-cell">মাধ্যম</th>
-                    <th className="text-left p-4 font-medium">স্ট্যাটাস</th>
-                    <th className="text-left p-4 font-medium">অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPayments.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                        কোনো পেমেন্ট পাওয়া যায়নি
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredPayments.map((payment) => (
-                      <tr key={payment.id} className="border-t border-border hover:bg-muted/30">
-                        <td className="p-4">
-                          <div>
-                            <p className="font-medium">{payment.profile?.full_name || "অজানা"}</p>
-                            <p className="text-xs text-muted-foreground">{payment.transaction_id}</p>
-                          </div>
-                        </td>
-                        <td className="p-4 hidden md:table-cell text-sm">
-                          {payment.course?.title || "অজানা কোর্স"}
-                        </td>
-                        <td className="p-4 font-bold text-primary">
-                          ৳{payment.amount?.toLocaleString()}
-                        </td>
-                        <td className="p-4 hidden lg:table-cell text-sm">
-                          {getMethodName(payment.payment_method)}
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-1">
-                            {getStatusIcon(payment.status)}
-                            <span className="text-sm">{getStatusText(payment.status)}</span>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2">
+      {/* Payments Table */}
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="text-left p-4 font-medium">ইউজার</th>
+                <th className="text-left p-4 font-medium hidden md:table-cell">কোর্স</th>
+                <th className="text-left p-4 font-medium">পরিমাণ</th>
+                <th className="text-left p-4 font-medium hidden lg:table-cell">মাধ্যম</th>
+                <th className="text-left p-4 font-medium">স্ট্যাটাস</th>
+                <th className="text-left p-4 font-medium">অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPayments.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                    কোনো পেমেন্ট পাওয়া যায়নি
+                  </td>
+                </tr>
+              ) : (
+                filteredPayments.map((payment) => (
+                  <tr key={payment.id} className="border-t border-border hover:bg-muted/30">
+                    <td className="p-4">
+                      <div>
+                        <p className="font-medium">{payment.billing_info?.name || payment.profile?.full_name || "অজানা"}</p>
+                        <p className="text-xs text-muted-foreground">{payment.transaction_id}</p>
+                      </div>
+                    </td>
+                    <td className="p-4 hidden md:table-cell text-sm">
+                      {payment.course?.title || "অজানা কোর্স"}
+                    </td>
+                    <td className="p-4 font-bold text-primary">
+                      ৳{payment.amount?.toLocaleString()}
+                    </td>
+                    <td className="p-4 hidden lg:table-cell text-sm">
+                      {getMethodName(payment.payment_method)}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-1">
+                        {getStatusIcon(payment.status)}
+                        <span className="text-sm">{getStatusText(payment.status)}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedPayment(payment);
+                            setShowVerifyDialog(true);
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        {payment.status === "pending" && (
+                          <>
                             <Button
                               variant="ghost"
                               size="icon"
+                              className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                              onClick={() => {
+                                setSelectedPayment(payment);
+                                handleVerifyPayment("approve");
+                              }}
+                            >
+                              <Check className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-100"
                               onClick={() => {
                                 setSelectedPayment(payment);
                                 setShowVerifyDialog(true);
                               }}
                             >
-                              <Eye className="w-4 h-4" />
+                              <X className="w-4 h-4" />
                             </Button>
-                            {payment.status === "pending" && (
-                              <>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-green-600 hover:text-green-700 hover:bg-green-100"
-                                  onClick={() => {
-                                    setSelectedPayment(payment);
-                                    handleVerifyPayment("approve");
-                                  }}
-                                >
-                                  <Check className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-100"
-                                  onClick={() => {
-                                    setSelectedPayment(payment);
-                                    setShowVerifyDialog(true);
-                                  }}
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      </main>
-
-      <Footer />
+      </div>
 
       {/* Payment Details Dialog */}
       <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
@@ -339,11 +307,23 @@ const AdminPayments = () => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">ইউজার</p>
-                  <p className="font-medium">{selectedPayment.profile?.full_name}</p>
+                  <p className="font-medium">{selectedPayment.billing_info?.name || selectedPayment.profile?.full_name}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">ফোন</p>
-                  <p className="font-medium">{selectedPayment.profile?.phone || selectedPayment.gateway_response?.phone_number}</p>
+                  <p className="font-medium">{selectedPayment.billing_info?.phone || selectedPayment.profile?.phone}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">ইমেইল</p>
+                  <p className="font-medium">{selectedPayment.billing_info?.email || selectedPayment.profile?.email}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">ইনস্টিটিউট</p>
+                  <p className="font-medium">{selectedPayment.billing_info?.institute || "-"}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-muted-foreground">ঠিকানা</p>
+                  <p className="font-medium">{selectedPayment.billing_info?.address || "-"}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">কোর্স</p>
@@ -363,7 +343,7 @@ const AdminPayments = () => {
                 </div>
                 <div>
                   <p className="text-muted-foreground">তারিখ</p>
-                  <p className="font-medium">{new Date(selectedPayment.payment_date).toLocaleDateString("bn-BD")}</p>
+                  <p className="font-medium">{format(new Date(selectedPayment.payment_date), "dd/MM/yyyy hh:mm a")}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">স্ট্যাটাস</p>
@@ -419,7 +399,7 @@ const AdminPayments = () => {
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </AdminLayout>
   );
 };
 
