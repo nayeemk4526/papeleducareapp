@@ -60,11 +60,13 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Custom gradient colors for JS access
-        "gradient-blue": "hsl(var(--gradient-blue))",
-        "gradient-purple": "hsl(var(--gradient-purple))",
-        "gradient-cyan": "hsl(var(--gradient-cyan))",
-        "gradient-pink": "hsl(var(--gradient-pink))",
+        // Custom brand colors for gradients
+        "electric-blue": "hsl(217 91% 60%)",
+        "deep-purple": "hsl(263 70% 50%)",
+        "neon-cyan": "hsl(187 92% 48%)",
+        "vibrant-pink": "hsl(330 81% 60%)",
+        "golden": "hsl(45 93% 47%)",
+        "success": "hsl(142 71% 45%)",
       },
       borderRadius: {
         lg: "var(--radius)",
