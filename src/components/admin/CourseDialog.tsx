@@ -53,10 +53,22 @@ const CourseDialog = ({ open, onOpenChange, course }: CourseDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Clean up form data - convert empty strings to null for UUID fields
+    const cleanedData: CourseFormData = {
+      ...formData,
+      category_id: formData.category_id || undefined,
+      instructor_id: formData.instructor_id || undefined,
+      thumbnail_url: formData.thumbnail_url || undefined,
+      preview_video_url: formData.preview_video_url || undefined,
+      how_to_enroll_video_url: formData.how_to_enroll_video_url || undefined,
+      short_description: formData.short_description || undefined,
+      description: formData.description || undefined,
+    };
+    
     if (isEdit) {
-      await updateCourse.mutateAsync({ id: course.id, ...formData });
+      await updateCourse.mutateAsync({ id: course.id, ...cleanedData });
     } else {
-      await createCourse.mutateAsync(formData);
+      await createCourse.mutateAsync(cleanedData);
     }
     
     onOpenChange(false);
