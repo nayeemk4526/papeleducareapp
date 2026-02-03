@@ -3,86 +3,108 @@ import { Link } from "react-router-dom";
 import {
   GraduationCap,
   BookOpen,
-  Award,
-  Briefcase,
-  Code,
-  Lightbulb,
-  FileText,
-  PenTool,
   Layers,
-  Cpu,
+  FileText,
+  Building2,
+  TrendingUp,
+  Lightbulb,
+  PenTool,
+  Settings,
+  type LucideIcon,
 } from "lucide-react";
 
-const categories = [
+interface Category {
+  id: number;
+  name: string;
+  icon: LucideIcon;
+  gradient: string;
+  iconBg: string;
+  href: string;
+  special?: boolean;
+  badge?: string;
+}
+
+const categories: Category[] = [
   {
     id: 1,
     name: "নবম শ্রেণি (ভোকেশনাল)",
     icon: BookOpen,
-    color: "from-blue-500 to-blue-600",
+    gradient: "from-primary to-primary/80",
+    iconBg: "bg-gradient-to-br from-primary to-primary/70",
     href: "/category/class-9",
   },
   {
     id: 2,
     name: "দশম শ্রেণি (ভোকেশনাল)",
     icon: GraduationCap,
-    color: "from-purple-500 to-purple-600",
+    gradient: "from-accent to-primary",
+    iconBg: "bg-gradient-to-br from-accent to-primary",
     href: "/category/class-10",
   },
   {
     id: 3,
-    name: "একাদশ শ্রেণি",
-    icon: Award,
-    color: "from-cyan-500 to-cyan-600",
+    name: "একাদশ শ্রেণি (ভোক & বিএমটি)",
+    icon: Layers,
+    gradient: "from-accent to-secondary",
+    iconBg: "bg-gradient-to-br from-accent via-primary to-secondary",
     href: "/category/class-11",
   },
   {
     id: 4,
-    name: "দ্বাদশ শ্রেণি",
-    icon: Briefcase,
-    color: "from-pink-500 to-pink-600",
+    name: "দ্বাদশ শ্রেণি (ভোক & বিএমটি)",
+    icon: FileText,
+    gradient: "from-vibrant-pink to-secondary",
+    iconBg: "bg-gradient-to-br from-vibrant-pink/80 to-vibrant-pink/50",
     href: "/category/class-12",
   },
   {
     id: 5,
     name: "ডিপ্লোমা ডায়নামিক কোর্স",
-    icon: Layers,
-    color: "from-orange-500 to-orange-600",
+    icon: Settings,
+    gradient: "from-golden to-vibrant-pink",
+    iconBg: "bg-gradient-to-br from-golden via-vibrant-pink to-secondary",
     href: "/diploma-dynamic",
     special: true,
+    badge: "৭ সেমিস্টার",
   },
   {
     id: 6,
     name: "ডিপ্লোমা কেয়ার কোর্স",
-    icon: FileText,
-    color: "from-green-500 to-green-600",
+    icon: Layers,
+    gradient: "from-secondary to-vibrant-pink",
+    iconBg: "bg-gradient-to-br from-secondary/80 to-secondary/50",
     href: "/category/diploma-care",
   },
   {
     id: 7,
-    name: "এডমিশন",
-    icon: PenTool,
-    color: "from-red-500 to-red-600",
+    name: "এডমিশন (ডিপ্লোমা & ডুয়েট)",
+    icon: Building2,
+    gradient: "from-primary to-accent",
+    iconBg: "bg-gradient-to-br from-primary to-accent",
     href: "/category/admission",
   },
   {
     id: 8,
     name: "স্কিল ডেভেলপমেন্ট",
-    icon: Code,
-    color: "from-indigo-500 to-indigo-600",
+    icon: TrendingUp,
+    gradient: "from-accent to-secondary",
+    iconBg: "bg-gradient-to-br from-accent to-secondary",
     href: "/category/skill-development",
   },
   {
     id: 9,
     name: "সুপার সাজেশন",
     icon: Lightbulb,
-    color: "from-yellow-500 to-yellow-600",
+    gradient: "from-vibrant-pink to-golden",
+    iconBg: "bg-gradient-to-br from-vibrant-pink/60 to-vibrant-pink/30",
     href: "/category/super-suggestion",
   },
   {
     id: 10,
     name: "অটো ক্যাড",
-    icon: Cpu,
-    color: "from-teal-500 to-teal-600",
+    icon: PenTool,
+    gradient: "from-secondary to-vibrant-pink",
+    iconBg: "bg-gradient-to-br from-secondary via-vibrant-pink to-golden",
     href: "/category/autocad",
   },
 ];
@@ -92,7 +114,7 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: 0.08,
     },
   },
 };
@@ -102,94 +124,98 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5 },
+    transition: { duration: 0.4 },
   },
 };
 
 const CategoryGrid = () => {
   return (
-    <section className="section-container">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-        className="text-center mb-12"
-      >
-        <h2 className="section-heading">
-          <span className="gradient-text">আমাদের ক্যাটাগরি সমূহ</span>
-        </h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          আপনার প্রয়োজন অনুযায়ী ক্যাটাগরি বেছে নিন এবং আজই শেখা শুরু করুন
-        </p>
-      </motion.div>
+    <section className="py-16 md:py-24">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          {/* Badge */}
+          <motion.span
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="inline-block px-5 py-2 rounded-full border border-secondary/30 text-secondary text-sm font-medium mb-6 bg-secondary/5"
+          >
+            আমাদের ক্যাটাগরিসমূহ
+          </motion.span>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6"
-      >
-        {categories.map((category) => {
-          const Icon = category.icon;
-          return (
-            <motion.div key={category.id} variants={itemVariants}>
-              <Link
-                to={category.href}
-                className="group block"
-              >
-                <motion.div
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="relative bg-card rounded-2xl p-4 md:p-6 border border-border shadow-sm card-hover-glow overflow-hidden"
-                >
-                  {/* Background Gradient on Hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+          {/* Title */}
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+            <span className="text-foreground">শিক্ষার সকল ক্ষেত্রে </span>
+            <span className="bg-gradient-to-r from-secondary via-vibrant-pink to-primary bg-clip-text text-transparent">
+              আমরা আছি
+            </span>
+          </h2>
 
-                  {/* Special Badge */}
-                  {category.special && (
-                    <span className="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-primary text-primary-foreground">
-                      বিশেষ
-                    </span>
-                  )}
+          {/* Subtitle */}
+          <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg">
+            আপনার পছন্দের ক্যাটাগরি বাছাই করুন এবং শেখার যাত্রা শুরু করুন
+          </p>
+        </motion.div>
 
-                  {/* Icon */}
-                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center mb-3 md:mb-4 shadow-lg group-hover:shadow-xl transition-shadow`}>
-                    <Icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="font-semibold text-sm md:text-base text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                    {category.name}
-                  </h3>
-
-                  {/* Arrow indicator */}
+        {/* Grid */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5"
+        >
+          {categories.map((category) => {
+            const Icon = category.icon;
+            return (
+              <motion.div key={category.id} variants={itemVariants}>
+                <Link to={category.href} className="group block h-full">
                   <motion.div
-                    className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                    initial={{ x: -10 }}
-                    whileHover={{ x: 0 }}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`relative h-full bg-card rounded-2xl p-5 md:p-6 border transition-all duration-300 ${
+                      category.special
+                        ? "border-golden/60 shadow-lg shadow-golden/10 ring-2 ring-golden/20"
+                        : "border-border/50 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+                    }`}
                   >
-                    <svg
-                      className="w-5 h-5 text-primary"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    {/* Subtle gradient background */}
+                    <div
+                      className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${category.gradient} opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-300`}
+                    />
+
+                    {/* Special Badge */}
+                    {category.special && category.badge && (
+                      <span className="absolute top-3 right-3 px-2.5 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-vibrant-pink to-golden text-white shadow-sm">
+                        {category.badge}
+                      </span>
+                    )}
+
+                    {/* Icon */}
+                    <div
+                      className={`w-14 h-14 md:w-16 md:h-16 rounded-xl ${category.iconBg} flex items-center justify-center mb-4 shadow-lg group-hover:shadow-xl transition-shadow`}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                      <Icon className="w-7 h-7 md:w-8 md:h-8 text-white" />
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="font-semibold text-sm md:text-base text-foreground group-hover:text-primary transition-colors leading-snug">
+                      {category.name}
+                    </h3>
                   </motion.div>
-                </motion.div>
-              </Link>
-            </motion.div>
-          );
-        })}
-      </motion.div>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </div>
     </section>
   );
 };

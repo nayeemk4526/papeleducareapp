@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
@@ -40,37 +40,41 @@ const Navbar = () => {
         transition={{ duration: 0.5 }}
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          isScrolled ? "glass py-2 shadow-lg" : "bg-transparent py-4",
+          isScrolled 
+            ? "bg-background/95 backdrop-blur-md py-2 shadow-lg border-b border-border/50" 
+            : "bg-background py-3",
         )}
       >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             {/* Logo - Left */}
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-3">
               <motion.div
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center"
+                className="w-11 h-11 rounded-full bg-gradient-to-br from-secondary to-vibrant-pink flex items-center justify-center shadow-lg"
               >
-                <span className="text-lg font-bold text-primary-foreground">প</span>
+                <span className="text-xl font-bold text-white">প</span>
               </motion.div>
               <div className="hidden sm:block">
-                <h1 className="text-lg font-bold gradient-text">পাপেল এডু-কেয়ার</h1>
-                <p className="text-[10px] text-muted-foreground -mt-1">শিক্ষার নতুন দিগন্ত</p>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-secondary via-vibrant-pink to-primary bg-clip-text text-transparent">
+                  পাপেল এডু-কেয়ার
+                </h1>
+                <p className="text-xs text-muted-foreground -mt-0.5">শিক্ষার নতুন দিগন্ত</p>
               </div>
             </Link>
 
             {/* Navigation - Center (Desktop) */}
-            <div className="hidden lg:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-1 bg-muted/50 rounded-full p-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                    "px-5 py-2 rounded-full text-sm font-medium transition-all duration-300",
                     location.pathname === link.href
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted text-foreground",
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "text-foreground hover:text-primary hover:bg-muted",
                   )}
                 >
                   {link.name}
@@ -79,9 +83,14 @@ const Navbar = () => {
             </div>
 
             {/* Right Side - Theme Toggle & Auth Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {/* Theme Toggle */}
-              <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleTheme} 
+                className="rounded-full w-10 h-10 hover:bg-muted"
+              >
                 <AnimatePresence mode="wait">
                   {theme === "light" ? (
                     <motion.div
@@ -108,14 +117,16 @@ const Navbar = () => {
               </Button>
 
               {/* Auth Buttons (Desktop) */}
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-3">
                 <Link to="/login">
-                  <Button variant="ghost" className="font-medium">
+                  <Button variant="ghost" className="font-medium text-foreground hover:text-primary">
                     লগইন
                   </Button>
                 </Link>
                 <Link to="/register">
-                  <Button className="gradient-primary btn-glow font-medium">রেজিস্টার</Button>
+                  <Button className="bg-gradient-to-r from-secondary to-vibrant-pink hover:from-secondary/90 hover:to-vibrant-pink/90 text-white font-medium px-6 rounded-full shadow-lg hover:shadow-xl transition-all">
+                    রেজিস্টার
+                  </Button>
                 </Link>
               </div>
 
@@ -123,7 +134,7 @@ const Navbar = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden"
+                className="lg:hidden rounded-full"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
                 {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -159,8 +170,10 @@ const Navbar = () => {
                     <Link
                       to={link.href}
                       className={cn(
-                        "block px-4 py-3 rounded-lg text-base font-medium transition-all",
-                        location.pathname === link.href ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+                        "block px-4 py-3 rounded-xl text-base font-medium transition-all",
+                        location.pathname === link.href 
+                          ? "bg-gradient-to-r from-secondary to-vibrant-pink text-white" 
+                          : "hover:bg-muted",
                       )}
                     >
                       {link.name}
@@ -177,12 +190,14 @@ const Navbar = () => {
                   className="flex flex-col gap-2"
                 >
                   <Link to="/login">
-                    <Button variant="outline" className="w-full font-medium">
+                    <Button variant="outline" className="w-full font-medium rounded-xl">
                       লগইন
                     </Button>
                   </Link>
                   <Link to="/register">
-                    <Button className="w-full gradient-primary font-medium">রেজিস্টার</Button>
+                    <Button className="w-full bg-gradient-to-r from-secondary to-vibrant-pink text-white font-medium rounded-xl">
+                      রেজিস্টার
+                    </Button>
                   </Link>
                 </motion.div>
               </div>
