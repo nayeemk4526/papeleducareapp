@@ -41,10 +41,28 @@ export const usePublicLessonsByCourse = (courseId: string) => {
       // For public view, we only show lesson titles and free preview status
       const { data, error } = await supabase
         .from("lessons")
-        .select("id, title, description, video_duration_minutes, lesson_order, is_free_preview, is_published")
+        .select("id, title, description, video_duration_minutes, lesson_order, is_free_preview, is_published, section_id")
         .eq("course_id", courseId)
         .eq("is_published", true)
         .order("lesson_order", { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!courseId,
+  });
+};
+
+export const usePublicSectionsByCourse = (courseId: string) => {
+  return useQuery({
+    queryKey: ["public-sections", courseId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sections")
+        .select("id, title, description, section_order, is_published")
+        .eq("course_id", courseId)
+        .eq("is_published", true)
+        .order("section_order", { ascending: true });
 
       if (error) throw error;
       return data;
