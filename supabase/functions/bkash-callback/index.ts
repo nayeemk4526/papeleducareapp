@@ -26,10 +26,7 @@ serve(async (req) => {
     }
 
     // Create admin client for database operations
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     // Find the payment record
     const { data: payment, error: findError } = await supabase
@@ -51,7 +48,7 @@ serve(async (req) => {
         .from("payments")
         .update({ status: "failed", gateway_response: { ...payment.gateway_response, callback_status: "cancel" } })
         .eq("id", payment.id);
-      
+
       return redirectToResult("cancel", "পেমেন্ট বাতিল করা হয়েছে", origin, payment.course_id);
     }
 
@@ -61,7 +58,7 @@ serve(async (req) => {
         .from("payments")
         .update({ status: "failed", gateway_response: { ...payment.gateway_response, callback_status: "failure" } })
         .eq("id", payment.id);
-      
+
       return redirectToResult("error", "পেমেন্ট ব্যর্থ হয়েছে", origin, payment.course_id);
     }
 
@@ -87,8 +84,8 @@ serve(async (req) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": idToken,
+        Accept: "application/json",
+        Authorization: idToken,
         "X-APP-Key": appKey!,
       },
       body: JSON.stringify({
@@ -103,13 +100,18 @@ serve(async (req) => {
       console.error("Execute payment failed:", executeData);
       await supabase
         .from("payments")
-        .update({ 
-          status: "failed", 
-          gateway_response: { ...payment.gateway_response, execute_response: executeData } 
+        .update({
+          status: "failed",
+          gateway_response: { ...payment.gateway_response, execute_response: executeData },
         })
         .eq("id", payment.id);
-      
-      return redirectToResult("error", executeData.statusMessage || "পেমেন্ট সম্পন্ন করতে সমস্যা হয়েছে", origin, payment.course_id);
+
+      return redirectToResult(
+        "error",
+        executeData.statusMessage || "পেমেন্ট সম্পন্ন করতে সমস্যা হয়েছে",
+        origin,
+        payment.course_id,
+      );
     }
 
     // Payment successful - update payment record
@@ -118,10 +120,10 @@ serve(async (req) => {
       .update({
         status: "completed",
         verified_at: new Date().toISOString(),
-        gateway_response: { 
-          ...payment.gateway_response, 
+        gateway_response: {
+          ...payment.gateway_response,
           execute_response: executeData,
-          trxID: executeData.trxID 
+          trxID: executeData.trxID,
         },
       })
       .eq("id", payment.id);
@@ -131,13 +133,11 @@ serve(async (req) => {
     }
 
     // Create enrollment
-    const { error: enrollError } = await supabase
-      .from("enrollments")
-      .insert({
-        user_id: payment.user_id,
-        course_id: payment.course_id,
-        progress_percentage: 0,
-      });
+    const { error: enrollError } = await supabase.from("enrollments").insert({
+      user_id: payment.user_id,
+      course_id: payment.course_id,
+      progress_percentage: 0,
+    });
 
     if (enrollError && !enrollError.message.includes("duplicate")) {
       console.error("Failed to create enrollment:", enrollError);
@@ -149,7 +149,7 @@ serve(async (req) => {
       .select("total_students")
       .eq("id", payment.course_id)
       .single();
-    
+
     if (course) {
       await supabase
         .from("courses")
@@ -163,7 +163,7 @@ serve(async (req) => {
       title: "পেমেন্ট সফল!",
       message: `আপনার বিকাশ পেমেন্ট সফল হয়েছে। Transaction ID: ${executeData.trxID}`,
       type: "payment",
-      link: "/dashboard/my-courses",
+      link: "/dashboard",
     });
 
     // Send SMS notification
@@ -180,18 +180,23 @@ serve(async (req) => {
 
     console.log("Payment completed successfully:", { trxID: executeData.trxID });
     return redirectToResult("success", "পেমেন্ট সফল হয়েছে!", origin, payment.course_id);
-
   } catch (error: any) {
     console.error("bKash callback error:", error);
     return redirectToResult("error", "পেমেন্ট প্রসেস করতে সমস্যা হয়েছে");
   }
 });
 
-function redirectToResult(status: string, message: string, origin = "https://papeleducareapp.lovable.app", courseId?: string) {
-  const redirectUrl = status === "success" 
-    ? `${origin}/dashboard/my-courses?payment=success`
-    : `${origin}/checkout/${courseId || ""}?payment=${status}&message=${encodeURIComponent(message)}`;
-  
+function redirectToResult(
+  status: string,
+  message: string,
+  origin = "https://papeleducareapp.lovable.app",
+  courseId?: string,
+) {
+  const redirectUrl =
+    status === "success"
+      ? `${origin}/dashboard/my-courses?payment=success`
+      : `${origin}/checkout/${courseId || ""}?payment=${status}&message=${encodeURIComponent(message)}`;
+
   return new Response(null, {
     status: 302,
     headers: {
