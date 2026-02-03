@@ -30,7 +30,7 @@ import { useEnrolledCurriculum, PlayerLesson } from "@/hooks/usePlayerLessons";
 import { useLessonProgress, useMarkLessonComplete } from "@/hooks/useLessonProgress";
 import { useCourseMaterials, formatFileSize } from "@/hooks/useCourseMaterials";
 import Navbar from "@/components/Navbar";
-import VideoPlayer from "@/components/dashboard/VideoPlayer";
+import YouTubePlayer from "@/components/dashboard/YouTubePlayer";
 import { useToast } from "@/hooks/use-toast";
 
 const CoursePlayer = () => {
@@ -208,8 +208,8 @@ const CoursePlayer = () => {
             {/* Video Player */}
             <div className="bg-black">
               {currentLesson?.video_url ? (
-                <VideoPlayer
-                  src={currentLesson.video_url}
+                <YouTubePlayer
+                  videoUrl={currentLesson.video_url}
                   title={currentLesson.title}
                   onComplete={handleMarkComplete}
                   className="w-full"
