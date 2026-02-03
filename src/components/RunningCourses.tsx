@@ -195,8 +195,28 @@ const RunningCourses = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="overflow-x-auto pb-4 mb-8 -mx-4 px-4 scrollbar-hide">
-            <TabsList className="inline-flex h-auto p-1.5 bg-muted/60 rounded-full gap-1">
+          {/* Mobile: Wrapped Tabs */}
+          <div className="md:hidden mb-6">
+            <div className="flex flex-wrap gap-2 justify-center">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-3 py-1.5 text-xs rounded-full transition-all ${
+                    activeTab === tab.id
+                      ? "bg-gradient-to-r from-secondary to-vibrant-pink text-white shadow-md"
+                      : "bg-muted/60 text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {tab.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop: Horizontal Tabs */}
+          <div className="hidden md:block overflow-x-auto pb-4 mb-8 scrollbar-hide">
+            <TabsList className="inline-flex h-auto p-1.5 bg-muted/60 rounded-full gap-1 w-full justify-center">
               {tabs.map((tab) => (
                 <TabsTrigger
                   key={tab.id}

@@ -34,20 +34,22 @@ const socialLinks = [
 
 const Footer = () => {
   return (
-    <footer className="relative bg-card border-t border-border">
+    <footer className="relative bg-card border-t border-border mb-16 lg:mb-0">
       {/* Gradient Top Border */}
-      <div className="absolute top-0 left-0 right-0 h-1 gradient-primary" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-secondary via-vibrant-pink to-primary" />
 
-      <div className="container mx-auto px-4 py-12 md:py-16">
+      <div className="container mx-auto px-4 py-10 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand Section */}
           <div className="lg:col-span-1">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                <span className="text-lg font-bold text-primary-foreground">প</span>
+            <Link to="/" className="flex items-center gap-3 mb-4">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-secondary to-vibrant-pink flex items-center justify-center shadow-lg">
+                <span className="text-xl font-bold text-white">প</span>
               </div>
               <div>
-                <h3 className="text-lg font-bold gradient-text">পাপেল এডু-কেয়ার</h3>
+                <h3 className="text-lg font-bold bg-gradient-to-r from-secondary via-vibrant-pink to-primary bg-clip-text text-transparent">
+                  পাপেল এডু-কেয়ার
+                </h3>
               </div>
             </Link>
             <p className="text-muted-foreground text-sm mb-4">

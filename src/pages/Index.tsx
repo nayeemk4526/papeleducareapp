@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import GlobalLoader from "@/components/GlobalLoader";
 import HeroSlider from "@/components/HeroSlider";
@@ -10,7 +10,6 @@ import Statistics from "@/components/Statistics";
 import Testimonials from "@/components/Testimonials";
 import TeachersPanel from "@/components/TeachersPanel";
 import Footer from "@/components/Footer";
-import MobileNavigation from "@/components/MobileNavigation";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +21,7 @@ const Index = () => {
       <div className={isLoading ? "hidden" : ""}>
         <Navbar />
         
-        <main className="pb-16 lg:pb-0">
+        <main>
           <HeroSlider />
           <CategoryGrid />
           <RunningCourses />
@@ -34,7 +33,6 @@ const Index = () => {
         </main>
 
         <Footer />
-        <MobileNavigation />
       </div>
     </>
   );
