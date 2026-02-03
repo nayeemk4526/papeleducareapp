@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import useEmblaCarousel from "embla-carousel-react";
 import { useCourses, type Course } from "@/hooks/useCourses";
+import { useCategories } from "@/hooks/useCategories";
+import { cn } from "@/lib/utils";
 
 const CourseCard = ({ course }: { course: Course }) => (
   <motion.div
@@ -92,8 +94,25 @@ const CourseCard = ({ course }: { course: Course }) => (
   </motion.div>
 );
 
+// Predefined tabs for running courses
+const runningCourseTabs = [
+  { slug: "all", name: "সকল কোর্স" },
+  { slug: "2nd-semester", name: "২য় সেমিস্টার" },
+  { slug: "3rd-semester", name: "৩য় সেমিস্টার" },
+  { slug: "5th-semester", name: "৫ম সেমিস্টার" },
+  { slug: "7th-semester", name: "৭ম সেমিস্টার" },
+  { slug: "ssc", name: "এসএসসি" },
+  { slug: "hsc", name: "এইচএসসি" },
+  { slug: "diploma-care", name: "ডিপ্লোমা কেয়ার" },
+  { slug: "admission", name: "এডমিশন" },
+  { slug: "skill-development", name: "স্কিল ডেভেলপমেন্ট" },
+];
+
 const RunningCourses = () => {
-  const { data: courses, isLoading } = useCourses({ featured: true, limit: 10 });
+  const { data: allCourses, isLoading } = useCourses({ featured: true, limit: 20 });
+  const { data: categories } = useCategories();
+  const [activeTab, setActiveTab] = useState("all");
+  
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
@@ -101,6 +120,14 @@ const RunningCourses = () => {
   });
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+
+  // Filter courses by category
+  const filteredCourses = activeTab === "all" 
+    ? allCourses 
+    : allCourses?.filter(course => {
+        const category = categories?.find(c => c.id === course.category_id);
+        return category?.slug === activeTab;
+      });
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -123,6 +150,13 @@ const RunningCourses = () => {
     }, 4000);
     return () => clearInterval(autoplay);
   }, [emblaApi]);
+
+  // Reinit embla when courses change
+  useEffect(() => {
+    if (emblaApi) {
+      emblaApi.reInit();
+    }
+  }, [emblaApi, filteredCourses]);
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
@@ -152,7 +186,7 @@ const RunningCourses = () => {
     );
   }
 
-  if (!courses?.length) {
+  if (!allCourses?.length) {
     return null;
   }
 
@@ -187,39 +221,65 @@ const RunningCourses = () => {
           </p>
         </motion.div>
 
+        {/* Category Tabs */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:flex-wrap md:justify-center gap-2 md:gap-3">
+            {runningCourseTabs.map((tab) => (
+              <button
+                key={tab.slug}
+                onClick={() => setActiveTab(tab.slug)}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
+                  activeTab === tab.slug
+                    ? "bg-gradient-to-r from-secondary to-vibrant-pink text-white shadow-lg"
+                    : "bg-card border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {tab.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="relative">
           {/* Carousel */}
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex gap-4 md:gap-6">
-              {courses.map((course) => (
+              {filteredCourses?.map((course) => (
                 <div key={course.id} className="flex-shrink-0">
                   <CourseCard course={course} />
                 </div>
-              ))}
+              )) || (
+                <div className="w-full text-center py-12 text-muted-foreground">
+                  এই ক্যাটাগরিতে কোনো কোর্স নেই
+                </div>
+              )}
             </div>
           </div>
 
           {/* Navigation */}
-          <div className="hidden md:flex items-center justify-center gap-3 mt-8">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={scrollPrev}
-              disabled={!canScrollPrev}
-              className="w-12 h-12 rounded-full border-2 hover:bg-secondary hover:text-white hover:border-secondary transition-all disabled:opacity-50"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={scrollNext}
-              disabled={!canScrollNext}
-              className="w-12 h-12 rounded-full border-2 hover:bg-secondary hover:text-white hover:border-secondary transition-all disabled:opacity-50"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-          </div>
+          {filteredCourses && filteredCourses.length > 3 && (
+            <div className="hidden md:flex items-center justify-center gap-3 mt-8">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={scrollPrev}
+                disabled={!canScrollPrev}
+                className="w-12 h-12 rounded-full border-2 hover:bg-secondary hover:text-white hover:border-secondary transition-all disabled:opacity-50"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={scrollNext}
+                disabled={!canScrollNext}
+                className="w-12 h-12 rounded-full border-2 hover:bg-secondary hover:text-white hover:border-secondary transition-all disabled:opacity-50"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </section>
