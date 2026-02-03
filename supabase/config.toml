@@ -1,1 +1,13 @@
 project_id = "dsyhvjwxqbixeifkofgl"
+
+[functions.process-payment]
+verify_jwt = false
+
+[functions.send-sms]
+verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false
+
+[functions.get-youtube-info]
+verify_jwt = false
