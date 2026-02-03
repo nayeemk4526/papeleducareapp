@@ -119,12 +119,12 @@ const Navbar = () => {
 
               {/* Auth Buttons (Desktop) */}
               <div className="hidden md:flex items-center gap-3">
-                <Link to="/login">
+                <Link to="/auth">
                   <Button variant="ghost" className="font-medium text-foreground hover:text-primary">
                     লগইন
                   </Button>
                 </Link>
-                <Link to="/register">
+                <Link to="/auth?tab=register">
                   <Button className="bg-gradient-to-r from-secondary to-vibrant-pink hover:from-secondary/90 hover:to-vibrant-pink/90 text-white font-medium px-6 rounded-full shadow-lg hover:shadow-xl transition-all">
                     রেজিস্টার
                   </Button>
@@ -190,12 +190,12 @@ const Navbar = () => {
                   transition={{ delay: 0.4 }}
                   className="flex flex-col gap-2"
                 >
-                  <Link to="/login">
+                  <Link to="/auth">
                     <Button variant="outline" className="w-full font-medium rounded-xl">
                       লগইন
                     </Button>
                   </Link>
-                  <Link to="/register">
+                  <Link to="/auth?tab=register">
                     <Button className="w-full bg-gradient-to-r from-secondary to-vibrant-pink text-white font-medium rounded-xl">
                       রেজিস্টার
                     </Button>
