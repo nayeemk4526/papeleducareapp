@@ -113,26 +113,43 @@ function handleRegister(): void {
 function handleLogin(): void {
     $input = getJsonInput();
     
-    $error = validateRequired($input, ['email', 'password']);
+    $error = validateRequired($input, ['identifier', 'password']);
     if ($error) {
         jsonResponse(['error' => $error], 400);
     }
     
     $db = Database::getInstance()->getConnection();
+    $identifier = trim($input['identifier']);
     
-    // Find user
-    $stmt = $db->prepare("SELECT id, email, password_hash FROM users WHERE email = ?");
-    $stmt->execute([$input['email']]);
+    // Check if identifier is email or phone
+    $isEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL);
+    
+    if ($isEmail) {
+        $stmt = $db->prepare("SELECT id, email, phone, password_hash, phone_verified_at FROM users WHERE email = ?");
+    } else {
+        // Normalize phone number
+        $phone = preg_replace('/[^0-9]/', '', $identifier);
+        $stmt = $db->prepare("SELECT id, email, phone, password_hash, phone_verified_at FROM users WHERE phone = ?");
+        $identifier = $phone;
+    }
+    
+    $stmt->execute([$identifier]);
     $user = $stmt->fetch();
     
     if (!$user || !password_verify($input['password'], $user['password_hash'])) {
-        jsonResponse(['error' => 'ইমেইল বা পাসওয়ার্ড ভুল'], 401);
+        jsonResponse(['error' => 'ইমেইল/ফোন অথবা পাসওয়ার্ড ভুল'], 401);
+    }
+    
+    // Check if phone is verified
+    if (!$user['phone_verified_at']) {
+        jsonResponse(['error' => 'আপনার ফোন নম্বর ভেরিফাই করা হয়নি'], 403);
     }
     
     // Generate JWT token
     $token = generateJWT([
         'user_id' => $user['id'],
         'email' => $user['email'],
+        'phone' => $user['phone'],
     ]);
     
     // Get profile
@@ -151,6 +168,7 @@ function handleLogin(): void {
         'user' => [
             'id' => $user['id'],
             'email' => $user['email'],
+            'phone' => $user['phone'],
         ],
         'profile' => $profile,
         'roles' => $roles,
