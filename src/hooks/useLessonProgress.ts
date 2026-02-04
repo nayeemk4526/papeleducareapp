@@ -1,47 +1,42 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { lessonsApi } from "@/lib/mysql-api";
 
 export interface LessonProgress {
-  id: string;
-  user_id: string;
-  lesson_id: string;
+  id: number;
+  user_id: number;
+  lesson_id: number;
   is_completed: boolean;
   watch_time_seconds: number;
   completed_at: string | null;
   created_at: string;
 }
 
-export const useLessonProgress = (courseId: string) => {
+export const useLessonProgress = (courseId: string | number) => {
   const { user } = useAuth();
+  const numericCourseId = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
 
   return useQuery({
-    queryKey: ["lesson-progress", user?.id, courseId],
+    queryKey: ["lesson-progress", user?.id, numericCourseId],
     queryFn: async () => {
       if (!user) return [];
 
-      // Get all lessons for this course first
-      const { data: lessons, error: lessonsError } = await supabase
-        .from("lessons")
-        .select("id")
-        .eq("course_id", courseId);
-
-      if (lessonsError) throw lessonsError;
-
-      const lessonIds = lessons?.map((l) => l.id) || [];
-
-      if (lessonIds.length === 0) return [];
-
-      const { data, error } = await supabase
-        .from("lesson_progress")
-        .select("*")
-        .eq("user_id", user.id)
-        .in("lesson_id", lessonIds);
-
-      if (error) throw error;
-      return data as LessonProgress[];
+      // Get lessons with progress from API
+      const response = await lessonsApi.getByCourse(numericCourseId);
+      
+      // Extract progress from lessons if included
+      const progress: LessonProgress[] = [];
+      if (response.data) {
+        response.data.forEach((lesson: any) => {
+          if (lesson.progress) {
+            progress.push(lesson.progress);
+          }
+        });
+      }
+      
+      return progress;
     },
-    enabled: !!user && !!courseId,
+    enabled: !!user && !!numericCourseId,
   });
 };
 
@@ -56,63 +51,21 @@ export const useUpdateLessonProgress = () => {
       isCompleted,
       watchTimeSeconds,
     }: {
-      lessonId: string;
-      courseId: string;
+      lessonId: string | number;
+      courseId: string | number;
       isCompleted?: boolean;
       watchTimeSeconds?: number;
     }) => {
       if (!user) throw new Error("User not authenticated");
 
-      // Check if progress exists
-      const { data: existing } = await supabase
-        .from("lesson_progress")
-        .select("id, watch_time_seconds")
-        .eq("user_id", user.id)
-        .eq("lesson_id", lessonId)
-        .maybeSingle();
+      const numericLessonId = typeof lessonId === 'string' ? parseInt(lessonId, 10) : lessonId;
+      
+      const response = await lessonsApi.updateProgress(numericLessonId, {
+        is_completed: isCompleted,
+        watch_time_seconds: watchTimeSeconds,
+      });
 
-      if (existing) {
-        // Update existing
-        const updateData: Record<string, unknown> = {};
-        if (isCompleted !== undefined) {
-          updateData.is_completed = isCompleted;
-          if (isCompleted) {
-            updateData.completed_at = new Date().toISOString();
-          }
-        }
-        if (watchTimeSeconds !== undefined) {
-          updateData.watch_time_seconds = Math.max(
-            existing.watch_time_seconds || 0,
-            watchTimeSeconds
-          );
-        }
-
-        const { data, error } = await supabase
-          .from("lesson_progress")
-          .update(updateData)
-          .eq("id", existing.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        return { data, courseId };
-      } else {
-        // Create new
-        const { data, error } = await supabase
-          .from("lesson_progress")
-          .insert({
-            user_id: user.id,
-            lesson_id: lessonId,
-            is_completed: isCompleted || false,
-            watch_time_seconds: watchTimeSeconds || 0,
-            completed_at: isCompleted ? new Date().toISOString() : null,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        return { data, courseId };
-      }
+      return { data: response, courseId };
     },
     onSuccess: ({ courseId }) => {
       queryClient.invalidateQueries({ queryKey: ["lesson-progress"] });
@@ -129,8 +82,8 @@ export const useMarkLessonComplete = () => {
       lessonId,
       courseId,
     }: {
-      lessonId: string;
-      courseId: string;
+      lessonId: string | number;
+      courseId: string | number;
     }) => {
       return updateProgress.mutateAsync({
         lessonId,
