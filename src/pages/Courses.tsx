@@ -19,7 +19,7 @@ const Courses = () => {
   const filteredCourses = courses?.filter((course) => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.short_description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || course.category_id === selectedCategory;
+    const matchesCategory = selectedCategory === "all" || String(course.category_id) === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -64,7 +64,7 @@ const Courses = () => {
                   <SelectContent>
                     <SelectItem value="all">সব ক্যাটাগরি</SelectItem>
                     {categories?.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                      <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

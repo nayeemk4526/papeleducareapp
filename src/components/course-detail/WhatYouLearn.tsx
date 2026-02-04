@@ -4,7 +4,7 @@ import { useCourseLearningOutcomes } from "@/hooks/useCourseLearningOutcomes";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface WhatYouLearnProps {
-  courseId: string;
+  courseId: string | number;
 }
 
 const WhatYouLearn = ({ courseId }: WhatYouLearnProps) => {

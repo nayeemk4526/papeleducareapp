@@ -7,7 +7,7 @@ import { usePublicLessonsByCourse, usePublicSectionsByCourse } from "@/hooks/use
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface CourseCurriculumProps {
-  courseId: string;
+  courseId: string | number;
   totalLessons: number;
   durationHours: number;
 }
@@ -38,7 +38,7 @@ const CourseCurriculum = ({ courseId, totalLessons, durationHours }: CourseCurri
   }
 
   // Group lessons by section
-  const getLessonsForSection = (sectionId: string) => {
+  const getLessonsForSection = (sectionId: number | string) => {
     return lessons?.filter(l => l.section_id === sectionId) || [];
   };
 
@@ -83,7 +83,7 @@ const CourseCurriculum = ({ courseId, totalLessons, durationHours }: CourseCurri
               return (
                 <AccordionItem
                   key={section.id}
-                  value={section.id}
+                  value={String(section.id)}
                   className="border border-border rounded-lg px-4 bg-muted/30"
                 >
                   <AccordionTrigger className="hover:no-underline py-4">
@@ -191,7 +191,7 @@ const CourseCurriculum = ({ courseId, totalLessons, durationHours }: CourseCurri
             {!hasSections && displayUnassignedLessons.map((lesson, index) => (
               <AccordionItem
                 key={lesson.id}
-                value={lesson.id}
+                value={String(lesson.id)}
                 className="border border-border rounded-lg px-4 bg-muted/30"
               >
                 <AccordionTrigger className="hover:no-underline py-4">

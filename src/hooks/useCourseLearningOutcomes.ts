@@ -8,14 +8,14 @@ export interface LearningOutcomeFormData {
   display_order: number;
 }
 
-export const useCourseLearningOutcomes = (courseId?: string) => {
+export const useCourseLearningOutcomes = (courseId?: string | number) => {
   return useQuery({
     queryKey: ["course-learning-outcomes", courseId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("course_learning_outcomes")
         .select("*")
-        .eq("course_id", courseId!)
+        .eq("course_id", String(courseId!))
         .order("display_order", { ascending: true });
 
       if (error) throw error;

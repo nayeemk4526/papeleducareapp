@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { testimonialsApi } from "@/lib/mysql-api";
 
 export interface Testimonial {
-  id: string;
-  user_id: string;
-  course_id: string | null;
+  id: number;
+  user_id: number;
+  course_id: number | null;
   name: string;
   role: string | null;
   content: string;
@@ -14,21 +14,16 @@ export interface Testimonial {
   created_at: string;
 }
 
-export const useTestimonialsByCourse = (courseId: string) => {
+export const useTestimonialsByCourse = (courseId: string | number) => {
+  const numericCourseId = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
+  
   return useQuery({
-    queryKey: ["testimonials", courseId],
+    queryKey: ["testimonials", numericCourseId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("testimonials")
-        .select("*")
-        .eq("course_id", courseId)
-        .eq("is_approved", true)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Testimonial[];
+      const response = await testimonialsApi.byCourse(numericCourseId);
+      return response.data as Testimonial[];
     },
-    enabled: !!courseId,
+    enabled: !!numericCourseId,
   });
 };
 
@@ -36,16 +31,8 @@ export const useFeaturedTestimonials = () => {
   return useQuery({
     queryKey: ["featured-testimonials"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("testimonials")
-        .select("*")
-        .eq("is_approved", true)
-        .eq("is_featured", true)
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      return data as Testimonial[];
+      const response = await testimonialsApi.featured();
+      return response.data as Testimonial[];
     },
   });
 };
