@@ -71,19 +71,36 @@ async function apiRequest<T>(
 /**
  * Auth API
  */
-export const authApi = {
-  async signUp(data: {
+/**
+ * OTP API
+ */
+export const otpApi = {
+  async sendOTP(phone: string) {
+    return apiRequest<{
+      success: boolean;
+      message: string;
+      dev_otp?: string; // Only in development
+    }>('/otp.php?action=send', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    });
+  },
+  
+  async verifyOTP(data: {
+    phone: string;
+    otp: string;
+    full_name: string;
     email: string;
     password: string;
-    full_name: string;
-    phone: string;
   }) {
     const result = await apiRequest<{
       success: boolean;
+      message: string;
       token: string;
-      user: { id: number; email: string };
+      user: { id: number; email: string; phone: string };
       profile: any;
-    }>('/auth.php?action=register', {
+      roles: string[];
+    }>('/otp.php?action=verify', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -92,21 +109,38 @@ export const authApi = {
       setToken(result.token);
       localStorage.setItem(USER_KEY, JSON.stringify(result.user));
       localStorage.setItem(PROFILE_KEY, JSON.stringify(result.profile));
+      localStorage.setItem(ROLES_KEY, JSON.stringify(result.roles));
     }
     
     return result;
   },
   
-  async signIn(email: string, password: string) {
+  async resendOTP(phone: string) {
+    return apiRequest<{
+      success: boolean;
+      message: string;
+      dev_otp?: string;
+    }>('/otp.php?action=resend', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    });
+  },
+};
+
+/**
+ * Auth API
+ */
+export const authApi = {
+  async signIn(identifier: string, password: string) {
     const result = await apiRequest<{
       success: boolean;
       token: string;
-      user: { id: number; email: string };
+      user: { id: number; email: string; phone: string };
       profile: any;
       roles: string[];
     }>('/auth.php?action=login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ identifier, password }),
     });
     
     if (result.success && result.token) {
@@ -120,13 +154,17 @@ export const authApi = {
   },
   
   async signOut() {
-    await apiRequest('/auth.php?action=logout', { method: 'POST' });
+    try {
+      await apiRequest('/auth.php?action=logout', { method: 'POST' });
+    } catch {
+      // Ignore errors on logout
+    }
     clearAuth();
   },
   
   async getMe() {
     return apiRequest<{
-      user: { id: number; email: string };
+      user: { id: number; email: string; phone: string };
       profile: any;
       roles: string[];
       is_admin: boolean;
@@ -368,6 +406,7 @@ export const profilesApi = {
 // Export default API object
 const api = {
   auth: authApi,
+  otp: otpApi,
   courses: coursesApi,
   categories: categoriesApi,
   teachers: teachersApi,
