@@ -1,24 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { enrollmentsApi } from "@/lib/mysql-api";
 
 export interface Enrollment {
-  id: string;
-  user_id: string;
-  course_id: string;
+  id: number;
+  user_id: number;
+  course_id: number;
   progress_percentage: number;
-  last_accessed_lesson_id: string | null;
+  last_accessed_lesson_id: number | null;
   enrolled_at: string;
   completed_at: string | null;
   certificate_url: string | null;
   course?: {
-    id: string;
+    id: number;
     title: string;
     slug: string;
     thumbnail_url: string | null;
     total_lessons: number;
     instructor?: {
-      id: string;
+      id: number;
       name: string;
     } | null;
   };
@@ -32,44 +32,26 @@ export const useEnrollments = () => {
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase
-        .from("enrollments")
-        .select(`
-          *,
-          course:courses(
-            id, title, slug, thumbnail_url, total_lessons,
-            instructor:teachers(id, name)
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("enrolled_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Enrollment[];
+      const response = await enrollmentsApi.list();
+      return response.data as Enrollment[];
     },
     enabled: !!user,
   });
 };
 
-export const useIsEnrolled = (courseId: string) => {
+export const useIsEnrolled = (courseId: string | number) => {
   const { user } = useAuth();
+  const numericCourseId = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
 
   return useQuery({
-    queryKey: ["enrollment", user?.id, courseId],
+    queryKey: ["enrollment", user?.id, numericCourseId],
     queryFn: async () => {
-      if (!user || !courseId) return false;
+      if (!user || !numericCourseId) return false;
 
-      const { data, error } = await supabase
-        .from("enrollments")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("course_id", courseId)
-        .maybeSingle();
-
-      if (error) throw error;
-      return !!data;
+      const response = await enrollmentsApi.check(numericCourseId);
+      return response.enrolled;
     },
-    enabled: !!user && !!courseId,
+    enabled: !!user && !!numericCourseId,
   });
 };
 
@@ -78,20 +60,14 @@ export const useEnrollInCourse = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (courseId: string) => {
+    mutationFn: async (courseId: string | number) => {
       if (!user) throw new Error("User not authenticated");
 
-      const { data, error } = await supabase
-        .from("enrollments")
-        .insert({
-          user_id: user.id,
-          course_id: courseId,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const numericCourseId = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
+      
+      // This would need an API endpoint to create enrollment
+      // For now, enrollments are created through payments
+      throw new Error("Direct enrollment not supported. Please complete payment.");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });
