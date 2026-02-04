@@ -9,7 +9,7 @@ import MobileNavigation from "@/components/MobileNavigation";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
-import Auth from "./pages/Auth";
+import Auth from "./pages/AuthMySQL";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Courses from "./pages/Courses";
