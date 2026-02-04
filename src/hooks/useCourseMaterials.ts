@@ -12,14 +12,14 @@ export interface CourseMaterial {
   created_at: string;
 }
 
-export const useCourseMaterials = (courseId: string) => {
+export const useCourseMaterials = (courseId: string | number) => {
   return useQuery({
     queryKey: ["course-materials", courseId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("course_materials")
         .select("*")
-        .eq("course_id", courseId)
+        .eq("course_id", String(courseId))
         .order("created_at", { ascending: true });
 
       if (error) throw error;

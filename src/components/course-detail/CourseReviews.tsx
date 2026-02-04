@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface CourseReviewsProps {
-  courseId: string;
+  courseId: string | number;
 }
 
 const CourseReviews = ({ courseId }: CourseReviewsProps) => {

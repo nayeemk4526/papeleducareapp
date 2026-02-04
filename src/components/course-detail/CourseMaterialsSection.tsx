@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useIsEnrolled } from "@/hooks/useEnrollments";
 
 interface CourseMaterialsSectionProps {
-  courseId: string;
+  courseId: string | number;
 }
 
 const getFileIcon = (fileType: string | null) => {
