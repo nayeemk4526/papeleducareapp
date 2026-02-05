@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { categoriesApi } from "@/lib/mysql-api";
 import { useToast } from "@/hooks/use-toast";
 
 export interface CategoryFormData {
@@ -16,13 +16,8 @@ export const useAdminCategories = () => {
   return useQuery({
     queryKey: ["admin-categories"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .order("display_order", { ascending: true });
-
-      if (error) throw error;
-      return data;
+      const result = await categoriesApi.list();
+      return result.data;
     },
   });
 };
@@ -33,14 +28,8 @@ export const useCreateCategory = () => {
 
   return useMutation({
     mutationFn: async (category: CategoryFormData) => {
-      const { data, error } = await supabase
-        .from("categories")
-        .insert(category)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const result = await categoriesApi.create(category);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
@@ -58,16 +47,9 @@ export const useUpdateCategory = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...category }: CategoryFormData & { id: string }) => {
-      const { data, error } = await supabase
-        .from("categories")
-        .update(category)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async ({ id, ...category }: CategoryFormData & { id: number }) => {
+      const result = await categoriesApi.update(id, category);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
@@ -85,9 +67,8 @@ export const useDeleteCategory = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("categories").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async (id: number) => {
+      await categoriesApi.delete(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });

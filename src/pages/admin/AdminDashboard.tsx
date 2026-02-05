@@ -6,33 +6,15 @@ import {
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { adminApi } from "@/lib/mysql-api";
 
 const AdminDashboard = () => {
   // Fetch real stats
   const { data: stats } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const [
-        { count: usersCount },
-        { count: coursesCount },
-        { count: enrollmentsCount },
-        { data: paymentsData }
-      ] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("courses").select("*", { count: "exact", head: true }),
-        supabase.from("enrollments").select("*", { count: "exact", head: true }),
-        supabase.from("payments").select("amount").eq("status", "completed"),
-      ]);
-
-      const totalRevenue = paymentsData?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-
-      return {
-        users: usersCount || 0,
-        courses: coursesCount || 0,
-        enrollments: enrollmentsCount || 0,
-        revenue: totalRevenue,
-      };
+      const result = await adminApi.getStats();
+      return result;
     },
   });
 

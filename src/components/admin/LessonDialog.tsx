@@ -7,14 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Youtube, Check } from "lucide-react";
 import { useCreateLesson, useUpdateLesson, type LessonFormData } from "@/hooks/useAdminLessons";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface LessonDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  courseId: string;
-  sectionId?: string;
+  courseId: string | number;
+  sectionId?: string | number;
   lesson?: any;
   nextOrder?: number;
 }
@@ -26,8 +25,8 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
   const { toast } = useToast();
 
   const [formData, setFormData] = useState<LessonFormData>({
-    course_id: courseId,
-    section_id: sectionId,
+    course_id: Number(courseId),
+    section_id: sectionId ? Number(sectionId) : undefined,
     title: "",
     description: "",
     video_url: "",
@@ -44,8 +43,8 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
   useEffect(() => {
     if (lesson) {
       setFormData({
-        course_id: courseId,
-        section_id: lesson.section_id || sectionId,
+        course_id: Number(courseId),
+        section_id: lesson.section_id ? Number(lesson.section_id) : (sectionId ? Number(sectionId) : undefined),
         title: lesson.title || "",
         description: lesson.description || "",
         video_url: lesson.video_url || "",
@@ -58,8 +57,8 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
       setDurationFetched(false);
     } else {
       setFormData({
-        course_id: courseId,
-        section_id: sectionId,
+        course_id: Number(courseId),
+        section_id: sectionId ? Number(sectionId) : undefined,
         title: "",
         description: "",
         video_url: "",
@@ -91,28 +90,11 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
     setDurationFetched(false);
 
     try {
-      const { data, error } = await supabase.functions.invoke('get-youtube-info', {
-        body: { videoUrl },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        video_duration_minutes: data.durationMinutes,
-      }));
-
-      setDurationFetched(true);
-
+      // Using a simple fetch to test YouTube API - you may need to implement edge function
       toast({
-        title: "সফল!",
-        description: `ভিডিওর সময়কাল: ${data.durationMinutes} মিনিট`,
+        title: "সতর্কতা",
+        description: "YouTube API এখনো configure করা হয়নি। ম্যানুয়ালি সময়কাল দিন।",
+        variant: "destructive",
       });
     } catch (error) {
       console.error('Error fetching YouTube info:', error);

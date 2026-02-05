@@ -268,6 +268,26 @@ export const categoriesApi = {
   async getBySlug(slug: string) {
     return apiRequest<any>(`/categories.php?slug=${slug}`);
   },
+  
+  async create(data: any) {
+    return apiRequest<{ success: boolean; data: any }>('/categories.php', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async update(id: number, data: any) {
+    return apiRequest<{ success: boolean; data: any }>(`/categories.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async delete(id: number) {
+    return apiRequest<{ success: boolean }>(`/categories.php?id=${id}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 /**
@@ -280,6 +300,26 @@ export const teachersApi = {
   
   async getById(id: number) {
     return apiRequest<any>(`/teachers.php?id=${id}`);
+  },
+  
+  async create(data: any) {
+    return apiRequest<{ success: boolean; data: any }>('/teachers.php', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async update(id: number, data: any) {
+    return apiRequest<{ success: boolean; data: any }>(`/teachers.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async delete(id: number) {
+    return apiRequest<{ success: boolean }>(`/teachers.php?id=${id}`, {
+      method: 'DELETE',
+    });
   },
 };
 
@@ -379,6 +419,26 @@ export const lessonsApi = {
     return apiRequest<any>(`/lessons.php?id=${id}`);
   },
   
+  async create(data: any) {
+    return apiRequest<{ success: boolean; data: any }>('/lessons.php', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async update(id: number, data: any) {
+    return apiRequest<{ success: boolean; data: any }>(`/lessons.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async delete(id: number) {
+    return apiRequest<{ success: boolean }>(`/lessons.php?id=${id}`, {
+      method: 'DELETE',
+    });
+  },
+  
   async updateProgress(lessonId: number, data: { is_completed?: boolean; watch_time_seconds?: number }) {
     return apiRequest<{ success: boolean }>(`/lessons.php?action=progress&lesson_id=${lessonId}`, {
       method: 'POST',
@@ -403,6 +463,135 @@ export const profilesApi = {
   },
 };
 
+/**
+ * Sections API
+ */
+export const sectionsApi = {
+  async getByCourse(courseId: number) {
+    return apiRequest<{ data: any[] }>(`/sections.php?course_id=${courseId}`);
+  },
+  
+  async create(data: any) {
+    return apiRequest<{ success: boolean; data: any }>('/sections.php', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async update(id: number, data: any) {
+    return apiRequest<{ success: boolean; data: any }>(`/sections.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async delete(id: number) {
+    return apiRequest<{ success: boolean }>(`/sections.php?id=${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
+ * Course Materials API
+ */
+export const courseMaterialsApi = {
+  async getByCourse(courseId: number) {
+    return apiRequest<{ data: any[] }>(`/materials.php?course_id=${courseId}`);
+  },
+  
+  async create(data: any) {
+    return apiRequest<{ success: boolean; data: any }>('/materials.php', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async update(id: number, data: any) {
+    return apiRequest<{ success: boolean; data: any }>(`/materials.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async delete(id: number) {
+    return apiRequest<{ success: boolean }>(`/materials.php?id=${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
+ * Learning Outcomes API
+ */
+export const learningOutcomesApi = {
+  async getByCourse(courseId: number) {
+    return apiRequest<{ data: any[] }>(`/outcomes.php?course_id=${courseId}`);
+  },
+  
+  async create(data: any) {
+    return apiRequest<{ success: boolean; data: any }>('/outcomes.php', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async update(id: number, data: any) {
+    return apiRequest<{ success: boolean; data: any }>(`/outcomes.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async delete(id: number) {
+    return apiRequest<{ success: boolean }>(`/outcomes.php?id=${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
+ * Admin Stats API
+ */
+export const adminApi = {
+  async getStats() {
+    return apiRequest<{
+      users: number;
+      courses: number;
+      enrollments: number;
+      revenue: number;
+    }>('/admin.php?action=stats');
+  },
+  
+  async getPayments() {
+    return apiRequest<{ data: any[] }>('/admin.php?action=payments');
+  },
+  
+  async verifyPayment(paymentId: number, action: 'approve' | 'reject', adminNotes?: string) {
+    return apiRequest<{ success: boolean; message: string }>('/admin.php?action=verify-payment', {
+      method: 'POST',
+      body: JSON.stringify({ payment_id: paymentId, action, admin_notes: adminNotes }),
+    });
+  },
+  
+  async getEnrollments(courseId?: number) {
+    const query = courseId ? `?action=enrollments&course_id=${courseId}` : '?action=enrollments';
+    return apiRequest<{ data: any[] }>(`/admin.php${query}`);
+  },
+  
+  async createEnrollment(data: { user_id: number; course_id: number }) {
+    return apiRequest<{ success: boolean; data: any }>('/admin.php?action=enroll', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async getUsers(search?: string) {
+    const query = search ? `?action=users&search=${encodeURIComponent(search)}` : '?action=users';
+    return apiRequest<{ data: any[] }>(`/admin.php${query}`);
+  },
+};
+
 // Export default API object
 const api = {
   auth: authApi,
@@ -416,6 +605,10 @@ const api = {
   notifications: notificationsApi,
   lessons: lessonsApi,
   profiles: profilesApi,
+  sections: sectionsApi,
+  materials: courseMaterialsApi,
+  learningOutcomes: learningOutcomesApi,
+  admin: adminApi,
 };
 
 export default api;

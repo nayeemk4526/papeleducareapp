@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { courseMaterialsApi } from "@/lib/mysql-api";
 import { useToast } from "@/hooks/use-toast";
 
 export interface CourseMaterialFormData {
-  course_id: string;
+  course_id: number;
   title: string;
   file_url: string;
   file_type?: string;
@@ -11,18 +11,12 @@ export interface CourseMaterialFormData {
   is_downloadable?: boolean;
 }
 
-export const useAdminCourseMaterials = (courseId?: string) => {
+export const useAdminCourseMaterials = (courseId?: string | number) => {
   return useQuery({
     queryKey: ["admin-course-materials", courseId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("course_materials")
-        .select("*")
-        .eq("course_id", courseId!)
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-      return data;
+      const result = await courseMaterialsApi.getByCourse(Number(courseId));
+      return result.data;
     },
     enabled: !!courseId,
   });
@@ -34,14 +28,8 @@ export const useCreateCourseMaterial = () => {
 
   return useMutation({
     mutationFn: async (material: CourseMaterialFormData) => {
-      const { data, error } = await supabase
-        .from("course_materials")
-        .insert(material)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const result = await courseMaterialsApi.create(material);
+      return result.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-course-materials", data.course_id] });
@@ -59,16 +47,9 @@ export const useUpdateCourseMaterial = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...material }: CourseMaterialFormData & { id: string }) => {
-      const { data, error } = await supabase
-        .from("course_materials")
-        .update(material)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async ({ id, ...material }: CourseMaterialFormData & { id: number }) => {
+      const result = await courseMaterialsApi.update(id, material);
+      return result.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-course-materials", data.course_id] });
@@ -86,10 +67,9 @@ export const useDeleteCourseMaterial = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, courseId }: { id: string; courseId: string }) => {
-      const { error } = await supabase.from("course_materials").delete().eq("id", id);
-      if (error) throw error;
-      return courseId;
+    mutationFn: async ({ id, courseId }: { id: number; courseId: string | number }) => {
+      await courseMaterialsApi.delete(id);
+      return String(courseId);
     },
     onSuccess: (courseId) => {
       queryClient.invalidateQueries({ queryKey: ["admin-course-materials", courseId] });
