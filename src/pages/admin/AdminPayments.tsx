@@ -8,14 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { adminApi } from "@/lib/mysql-api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 
 interface Payment {
-  id: string;
-  user_id: string;
-  course_id: string;
+  id: number;
+  user_id: number;
+  course_id: number;
   amount: number;
   payment_method: string;
   status: string;
@@ -46,29 +46,8 @@ const AdminPayments = () => {
   const { data: payments, isLoading } = useQuery({
     queryKey: ["admin-payments"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("payments")
-        .select(`
-          *,
-          course:courses(title)
-        `)
-        .order("payment_date", { ascending: false });
-
-      if (error) throw error;
-      
-      // Fetch profiles separately
-      const userIds = [...new Set(data.map(p => p.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, full_name, email, phone")
-        .in("user_id", userIds);
-      
-      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
-      
-      return data.map(payment => ({
-        ...payment,
-        profile: profileMap.get(payment.user_id) || null,
-      })) as Payment[];
+      const result = await adminApi.getPayments();
+      return result.data as Payment[];
     },
   });
 
@@ -114,27 +93,19 @@ const AdminPayments = () => {
 
     setIsProcessing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("verify-payment", {
-        body: {
-          payment_id: selectedPayment.id,
-          action: action,
-          admin_notes: adminNotes,
-        },
-      });
+      const result = await adminApi.verifyPayment(selectedPayment.id, action, adminNotes);
 
-      if (error) throw error;
-
-      if (data.success) {
+      if (result.success) {
         toast({
           title: "সফল!",
-          description: data.message,
+          description: result.message,
         });
         queryClient.invalidateQueries({ queryKey: ["admin-payments"] });
         setShowVerifyDialog(false);
         setSelectedPayment(null);
         setAdminNotes("");
       } else {
-        throw new Error(data.error);
+        throw new Error(result.message);
       }
     } catch (error: any) {
       toast({

@@ -11,7 +11,7 @@ import { Search, UserPlus } from "lucide-react";
 interface EnrollmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  courseId?: string;
+  courseId?: string | number;
 }
 
 const EnrollmentDialog = ({ open, onOpenChange, courseId }: EnrollmentDialogProps) => {
@@ -19,13 +19,13 @@ const EnrollmentDialog = ({ open, onOpenChange, courseId }: EnrollmentDialogProp
   const { data: courses } = useAdminCourses();
   const enrollUser = useManualEnrollment();
 
-  const [selectedUserId, setSelectedUserId] = useState("");
-  const [selectedCourseId, setSelectedCourseId] = useState(courseId || "");
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<number | null>(courseId ? Number(courseId) : null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredUsers = users?.filter(user => 
-    user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.phone?.includes(searchTerm)
   ) || [];
 
@@ -40,7 +40,7 @@ const EnrollmentDialog = ({ open, onOpenChange, courseId }: EnrollmentDialogProp
     });
     
     onOpenChange(false);
-    setSelectedUserId("");
+    setSelectedUserId(null);
     setSearchTerm("");
   };
 
@@ -59,15 +59,15 @@ const EnrollmentDialog = ({ open, onOpenChange, courseId }: EnrollmentDialogProp
             <div className="space-y-2">
               <Label htmlFor="course">কোর্স নির্বাচন করুন *</Label>
               <Select 
-                value={selectedCourseId} 
-                onValueChange={setSelectedCourseId}
+                value={selectedCourseId ? String(selectedCourseId) : undefined} 
+                onValueChange={(value) => setSelectedCourseId(Number(value))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="কোর্স নির্বাচন করুন" />
                 </SelectTrigger>
                 <SelectContent>
                   {courses?.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                    <SelectItem key={course.id} value={String(course.id)}>{course.title}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -93,9 +93,9 @@ const EnrollmentDialog = ({ open, onOpenChange, courseId }: EnrollmentDialogProp
                 filteredUsers.map((user) => (
                   <div
                     key={user.id}
-                    onClick={() => setSelectedUserId(user.user_id)}
+                    onClick={() => setSelectedUserId(user.user_id || user.id)}
                     className={`p-3 cursor-pointer hover:bg-muted transition-colors border-b border-border last:border-0 ${
-                      selectedUserId === user.user_id ? "bg-primary/10" : ""
+                      selectedUserId === (user.user_id || user.id) ? "bg-primary/10" : ""
                     }`}
                   >
                     <p className="font-medium">{user.full_name}</p>
@@ -114,7 +114,7 @@ const EnrollmentDialog = ({ open, onOpenChange, courseId }: EnrollmentDialogProp
           {selectedUserId && (
             <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
               <p className="text-sm text-primary font-medium">
-                নির্বাচিত: {users?.find(u => u.user_id === selectedUserId)?.full_name}
+                নির্বাচিত: {users?.find(u => (u.user_id || u.id) === selectedUserId)?.full_name}
               </p>
             </div>
           )}

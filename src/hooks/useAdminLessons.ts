@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { lessonsApi } from "@/lib/mysql-api";
 import { useToast } from "@/hooks/use-toast";
 
 export interface LessonFormData {
-  course_id: string;
-  section_id?: string;
+  course_id: number;
+  section_id?: number;
   title: string;
   description?: string;
   video_url?: string;
@@ -15,22 +15,12 @@ export interface LessonFormData {
   materials_url?: string;
 }
 
-export const useAdminLessons = (courseId?: string) => {
+export const useAdminLessons = (courseId?: string | number) => {
   return useQuery({
     queryKey: ["admin-lessons", courseId],
     queryFn: async () => {
-      let query = supabase
-        .from("lessons")
-        .select("*")
-        .order("lesson_order", { ascending: true });
-
-      if (courseId) {
-        query = query.eq("course_id", courseId);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
+      const result = await lessonsApi.getByCourse(Number(courseId));
+      return result.data;
     },
     enabled: !!courseId,
   });
@@ -42,14 +32,8 @@ export const useCreateLesson = () => {
 
   return useMutation({
     mutationFn: async (lesson: LessonFormData) => {
-      const { data, error } = await supabase
-        .from("lessons")
-        .insert(lesson)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const result = await lessonsApi.create(lesson);
+      return result.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-lessons", data.course_id] });
@@ -67,16 +51,9 @@ export const useUpdateLesson = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...lesson }: LessonFormData & { id: string }) => {
-      const { data, error } = await supabase
-        .from("lessons")
-        .update(lesson)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async ({ id, ...lesson }: LessonFormData & { id: number }) => {
+      const result = await lessonsApi.update(id, lesson);
+      return result.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-lessons", data.course_id] });
@@ -94,9 +71,8 @@ export const useDeleteLesson = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, courseId }: { id: string; courseId: string }) => {
-      const { error } = await supabase.from("lessons").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async ({ id, courseId }: { id: number; courseId: string | number }) => {
+      await lessonsApi.delete(id);
       return courseId;
     },
     onSuccess: (courseId) => {

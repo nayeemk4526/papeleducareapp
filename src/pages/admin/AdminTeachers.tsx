@@ -25,7 +25,7 @@ const AdminTeachers = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [teacherToDelete, setTeacherToDelete] = useState<string | null>(null);
+  const [teacherToDelete, setTeacherToDelete] = useState<number | null>(null);
 
   const filteredTeachers = teachers?.filter(teacher =>
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -36,7 +36,7 @@ const AdminTeachers = () => {
     setDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number) => {
     setTeacherToDelete(id);
     setDeleteDialogOpen(true);
   };

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { coursesApi } from "@/lib/mysql-api";
 import { useToast } from "@/hooks/use-toast";
 
 export interface CourseFormData {
@@ -9,8 +9,8 @@ export interface CourseFormData {
   short_description?: string;
   price: number;
   discount_price?: number;
-  category_id?: string;
-  instructor_id?: string;
+  category_id?: number;
+  instructor_id?: number;
   duration_hours?: number;
   total_lessons?: number;
   thumbnail_url?: string;
@@ -24,17 +24,8 @@ export const useAdminCourses = () => {
   return useQuery({
     queryKey: ["admin-courses"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("courses")
-        .select(`
-          *,
-          category:categories(id, name),
-          instructor:teachers(id, name)
-        `)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
+      const result = await coursesApi.list({ limit: 1000 });
+      return result.data;
     },
   });
 };
@@ -45,14 +36,8 @@ export const useCreateCourse = () => {
 
   return useMutation({
     mutationFn: async (course: CourseFormData) => {
-      const { data, error } = await supabase
-        .from("courses")
-        .insert(course)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const result = await coursesApi.create(course);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-courses"] });
@@ -70,16 +55,9 @@ export const useUpdateCourse = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...course }: CourseFormData & { id: string }) => {
-      const { data, error } = await supabase
-        .from("courses")
-        .update(course)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async ({ id, ...course }: CourseFormData & { id: number }) => {
+      const result = await coursesApi.update(id, course);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-courses"] });
@@ -97,9 +75,8 @@ export const useDeleteCourse = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("courses").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async (id: number) => {
+      await coursesApi.delete(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-courses"] });

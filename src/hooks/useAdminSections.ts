@@ -1,27 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { sectionsApi } from "@/lib/mysql-api";
 import { useToast } from "@/hooks/use-toast";
 
 export interface SectionFormData {
-  course_id: string;
+  course_id: number;
   title: string;
   description?: string;
   section_order: number;
   is_published?: boolean;
 }
 
-export const useAdminSections = (courseId?: string) => {
+export const useAdminSections = (courseId?: string | number) => {
   return useQuery({
     queryKey: ["admin-sections", courseId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sections")
-        .select("*, lessons(*)")
-        .eq("course_id", courseId!)
-        .order("section_order", { ascending: true });
-
-      if (error) throw error;
-      return data;
+      const result = await sectionsApi.getByCourse(Number(courseId));
+      return result.data;
     },
     enabled: !!courseId,
   });
@@ -33,14 +27,8 @@ export const useCreateSection = () => {
 
   return useMutation({
     mutationFn: async (section: SectionFormData) => {
-      const { data, error } = await supabase
-        .from("sections")
-        .insert(section)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const result = await sectionsApi.create(section);
+      return result.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-sections", data.course_id] });
@@ -57,16 +45,9 @@ export const useUpdateSection = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...section }: SectionFormData & { id: string }) => {
-      const { data, error } = await supabase
-        .from("sections")
-        .update(section)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async ({ id, ...section }: SectionFormData & { id: number }) => {
+      const result = await sectionsApi.update(id, section);
+      return result.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-sections", data.course_id] });
@@ -83,9 +64,8 @@ export const useDeleteSection = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, courseId }: { id: string; courseId: string }) => {
-      const { error } = await supabase.from("sections").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async ({ id, courseId }: { id: number; courseId: string | number }) => {
+      await sectionsApi.delete(id);
       return courseId;
     },
     onSuccess: (courseId) => {

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { teachersApi } from "@/lib/mysql-api";
 import { useToast } from "@/hooks/use-toast";
 
 export interface TeacherFormData {
@@ -12,20 +12,15 @@ export interface TeacherFormData {
   phone?: string;
   specializations?: string[];
   is_active?: boolean;
-  user_id?: string;
+  user_id?: number;
 }
 
 export const useAdminTeachers = () => {
   return useQuery({
     queryKey: ["admin-teachers"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("teachers")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
+      const result = await teachersApi.list();
+      return result.data;
     },
   });
 };
@@ -36,14 +31,8 @@ export const useCreateTeacher = () => {
 
   return useMutation({
     mutationFn: async (teacher: TeacherFormData) => {
-      const { data, error } = await supabase
-        .from("teachers")
-        .insert(teacher)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const result = await teachersApi.create(teacher);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-teachers"] });
@@ -61,16 +50,9 @@ export const useUpdateTeacher = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...teacher }: TeacherFormData & { id: string }) => {
-      const { data, error } = await supabase
-        .from("teachers")
-        .update(teacher)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async ({ id, ...teacher }: TeacherFormData & { id: number }) => {
+      const result = await teachersApi.update(id, teacher);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-teachers"] });
@@ -88,9 +70,8 @@ export const useDeleteTeacher = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("teachers").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async (id: number) => {
+      await teachersApi.delete(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-teachers"] });

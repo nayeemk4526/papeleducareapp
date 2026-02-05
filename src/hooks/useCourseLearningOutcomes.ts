@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { learningOutcomesApi } from "@/lib/mysql-api";
 import { useToast } from "@/hooks/use-toast";
 
 export interface LearningOutcomeFormData {
-  course_id: string;
+  course_id: number;
   content: string;
   display_order: number;
 }
@@ -12,14 +12,8 @@ export const useCourseLearningOutcomes = (courseId?: string | number) => {
   return useQuery({
     queryKey: ["course-learning-outcomes", courseId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("course_learning_outcomes")
-        .select("*")
-        .eq("course_id", String(courseId!))
-        .order("display_order", { ascending: true });
-
-      if (error) throw error;
-      return data;
+      const result = await learningOutcomesApi.getByCourse(Number(courseId));
+      return result.data;
     },
     enabled: !!courseId,
   });
@@ -31,14 +25,8 @@ export const useCreateLearningOutcome = () => {
 
   return useMutation({
     mutationFn: async (outcome: LearningOutcomeFormData) => {
-      const { data, error } = await supabase
-        .from("course_learning_outcomes")
-        .insert(outcome)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const result = await learningOutcomesApi.create(outcome);
+      return result.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["course-learning-outcomes", data.course_id] });
@@ -55,16 +43,9 @@ export const useUpdateLearningOutcome = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...outcome }: LearningOutcomeFormData & { id: string }) => {
-      const { data, error } = await supabase
-        .from("course_learning_outcomes")
-        .update(outcome)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async ({ id, ...outcome }: LearningOutcomeFormData & { id: number }) => {
+      const result = await learningOutcomesApi.update(id, outcome);
+      return result.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["course-learning-outcomes", data.course_id] });
@@ -81,9 +62,8 @@ export const useDeleteLearningOutcome = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, courseId }: { id: string; courseId: string }) => {
-      const { error } = await supabase.from("course_learning_outcomes").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async ({ id, courseId }: { id: number; courseId: string | number }) => {
+      await learningOutcomesApi.delete(id);
       return courseId;
     },
     onSuccess: (courseId) => {
