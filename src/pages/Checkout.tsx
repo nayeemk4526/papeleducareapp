@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useCourseById } from "@/hooks/useCourses";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { paymentsApi } from "@/lib/mysql-api";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -96,6 +96,7 @@ const Checkout = () => {
 
   const finalPrice = course.discount_price || course.price;
   const selectedPayment = paymentMethods.find(m => m.id === selectedMethod);
+  const numericCourseId = typeof course.id === 'string' ? parseInt(course.id, 10) : course.id;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,48 +145,40 @@ const Checkout = () => {
 
     try {
       if (isMerchantPayment) {
-        // bKash Merchant Payment - call bkash-payment edge function
-        const { data, error } = await supabase.functions.invoke("bkash-payment", {
-          body: {
-            course_id: course.id,
-            amount: finalPrice,
-            phone_number: billingInfo.phone.trim(),
-            billing_info: {
-              full_name: billingInfo.fullName,
-              email: billingInfo.email,
-              institute: billingInfo.institute,
-              address: billingInfo.address,
-            },
+        // bKash Merchant Payment - call MySQL API
+        const data = await paymentsApi.initiateBkash({
+          course_id: numericCourseId,
+          amount: finalPrice,
+          phone_number: billingInfo.phone.trim(),
+          billing_info: {
+            full_name: billingInfo.fullName,
+            email: billingInfo.email,
+            institute: billingInfo.institute,
+            address: billingInfo.address,
           },
         });
-
-        if (error) throw error;
 
         if (data.success && data.bkashURL) {
           // Redirect to bKash payment page
           window.location.href = data.bkashURL;
         } else {
-          throw new Error(data.error || "বিকাশ পেমেন্ট শুরু করতে সমস্যা হয়েছে");
+          throw new Error("বিকাশ পেমেন্ট শুরু করতে সমস্যা হয়েছে");
         }
       } else {
         // Manual Payment
-        const { data, error } = await supabase.functions.invoke("process-payment", {
-          body: {
-            course_id: course.id,
-            amount: finalPrice,
-            payment_method: selectedMethod,
-            transaction_id: transactionId.trim(),
-            phone_number: billingInfo.phone.trim(),
-            billing_info: {
-              full_name: billingInfo.fullName,
-              email: billingInfo.email,
-              institute: billingInfo.institute,
-              address: billingInfo.address,
-            },
+        const data = await paymentsApi.processManual({
+          course_id: numericCourseId,
+          amount: finalPrice,
+          payment_method: selectedMethod,
+          transaction_id: transactionId.trim(),
+          phone_number: billingInfo.phone.trim(),
+          billing_info: {
+            full_name: billingInfo.fullName,
+            email: billingInfo.email,
+            institute: billingInfo.institute,
+            address: billingInfo.address,
           },
         });
-
-        if (error) throw error;
 
         if (data.success) {
           setIsSuccess(true);
@@ -194,7 +187,7 @@ const Checkout = () => {
             description: data.message,
           });
         } else {
-          throw new Error(data.error || "পেমেন্ট প্রসেস করতে সমস্যা হয়েছে");
+          throw new Error("পেমেন্ট প্রসেস করতে সমস্যা হয়েছে");
         }
       }
     } catch (error: any) {
