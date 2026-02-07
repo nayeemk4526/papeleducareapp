@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { lessonsApi, sectionsApi } from "@/lib/mysql-api";
 
 export interface PlayerLesson {
   id: string;
@@ -29,58 +29,66 @@ export interface PlayerSection {
 }
 
 // Hook for enrolled users to get full lesson data with video URLs
-export const useEnrolledLessons = (courseId: string) => {
+export const useEnrolledLessons = (courseId: string | number) => {
   const { user, isAdmin } = useAuth();
+  const numericCourseId = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
 
   return useQuery({
-    queryKey: ["enrolled-lessons", courseId, user?.id, isAdmin],
+    queryKey: ["enrolled-lessons", numericCourseId, user?.id, isAdmin],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user || !numericCourseId) return [];
 
-      // For admins, fetch all lessons regardless of enrollment
-      // For regular users, RLS will filter based on enrollment
-      const { data, error } = await supabase
-        .from("lessons")
-        .select("*")
-        .eq("course_id", courseId)
-        .eq("is_published", true)
-        .order("lesson_order", { ascending: true });
-
-      if (error) throw error;
-      return data as PlayerLesson[];
+      // Fetch lessons from MySQL API
+      const response = await lessonsApi.getByCourse(numericCourseId);
+      
+      // Filter for published lessons and transform to expected format
+      const lessons = (response.data || [])
+        .filter((lesson: any) => lesson.is_published)
+        .map((lesson: any) => ({
+          ...lesson,
+          id: String(lesson.id),
+          course_id: String(lesson.course_id),
+          section_id: lesson.section_id ? String(lesson.section_id) : null,
+        }));
+      
+      return lessons as PlayerLesson[];
     },
-    enabled: !!user && !!courseId,
+    enabled: !!user && !!numericCourseId,
   });
 };
 
-export const useEnrolledSections = (courseId: string) => {
+export const useEnrolledSections = (courseId: string | number) => {
   const { user } = useAuth();
+  const numericCourseId = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
 
   return useQuery({
-    queryKey: ["enrolled-sections", courseId, user?.id],
+    queryKey: ["enrolled-sections", numericCourseId, user?.id],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user || !numericCourseId) return [];
 
-      const { data, error } = await supabase
-        .from("sections")
-        .select("*")
-        .eq("course_id", courseId)
-        .eq("is_published", true)
-        .order("section_order", { ascending: true });
-
-      if (error) throw error;
-      return data;
+      const response = await sectionsApi.getByCourse(numericCourseId);
+      
+      // Filter for published sections and transform IDs to strings
+      const sections = (response.data || [])
+        .filter((section: any) => section.is_published)
+        .map((section: any) => ({
+          ...section,
+          id: String(section.id),
+          course_id: String(section.course_id),
+        }));
+      
+      return sections;
     },
-    enabled: !!user && !!courseId,
+    enabled: !!user && !!numericCourseId,
   });
 };
 
 // Combined hook for structured curriculum
-export const useEnrolledCurriculum = (courseId: string) => {
+export const useEnrolledCurriculum = (courseId: string | number) => {
   const { data: sections = [], isLoading: sectionsLoading } = useEnrolledSections(courseId);
   const { data: lessons = [], isLoading: lessonsLoading } = useEnrolledLessons(courseId);
 
-  const curriculum: PlayerSection[] = sections.map((section) => ({
+  const curriculum: PlayerSection[] = sections.map((section: any) => ({
     ...section,
     lessons: lessons.filter((lesson) => lesson.section_id === section.id),
   }));
