@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { couponsApi } from "@/lib/mysql-api";
 import { useToast } from "@/hooks/use-toast";
 
 export interface CouponCode {
-  id: string;
+  id: number;
   code: string;
   discount_type: "percentage" | "fixed";
   discount_value: number;
@@ -13,7 +13,7 @@ export interface CouponCode {
   valid_from: string;
   valid_until: string | null;
   is_active: boolean;
-  course_id: string | null;
+  course_id: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -27,20 +27,15 @@ export interface CouponFormData {
   valid_from?: string;
   valid_until?: string | null;
   is_active?: boolean;
-  course_id?: string | null;
+  course_id?: number | null;
 }
 
 export const useAdminCoupons = () => {
   return useQuery({
     queryKey: ["admin-coupons"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("coupon_codes")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as CouponCode[];
+      const response = await couponsApi.list();
+      return response.data as CouponCode[];
     },
   });
 };
@@ -51,14 +46,8 @@ export const useCreateCoupon = () => {
 
   return useMutation({
     mutationFn: async (coupon: CouponFormData) => {
-      const { data, error } = await supabase
-        .from("coupon_codes")
-        .insert(coupon)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const response = await couponsApi.create(coupon);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
@@ -75,16 +64,9 @@ export const useUpdateCoupon = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...coupon }: CouponFormData & { id: string }) => {
-      const { data, error } = await supabase
-        .from("coupon_codes")
-        .update(coupon)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async ({ id, ...coupon }: CouponFormData & { id: number }) => {
+      const response = await couponsApi.update(id, coupon);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
@@ -101,9 +83,8 @@ export const useDeleteCoupon = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("coupon_codes").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async (id: number) => {
+      await couponsApi.delete(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
@@ -119,52 +100,16 @@ export const useValidateCoupon = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ code, courseId, amount }: { code: string; courseId: string; amount: number }) => {
-      const { data, error } = await supabase
-        .from("coupon_codes")
-        .select("*")
-        .eq("code", code.toUpperCase())
-        .eq("is_active", true)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("অবৈধ কুপন কোড");
-
-      // Check if coupon is for specific course
-      if (data.course_id && data.course_id !== courseId) {
-        throw new Error("এই কুপনটি এই কোর্সে প্রযোজ্য নয়");
+    mutationFn: async ({ code, courseId, amount }: { code: string; courseId: number; amount: number }) => {
+      const response = await couponsApi.validate(code, courseId, amount);
+      
+      if (!response.success) {
+        throw new Error("অবৈধ কুপন কোড");
       }
-
-      // Check max uses
-      if (data.max_uses && data.used_count >= data.max_uses) {
-        throw new Error("এই কুপনের ব্যবহার সীমা শেষ হয়ে গেছে");
-      }
-
-      // Check validity dates
-      const now = new Date();
-      if (data.valid_from && new Date(data.valid_from) > now) {
-        throw new Error("এই কুপনটি এখনও সক্রিয় হয়নি");
-      }
-      if (data.valid_until && new Date(data.valid_until) < now) {
-        throw new Error("এই কুপনের মেয়াদ শেষ হয়ে গেছে");
-      }
-
-      // Check minimum purchase
-      if (data.min_purchase_amount && amount < data.min_purchase_amount) {
-        throw new Error(`সর্বনিম্ন ক্রয় পরিমাণ ৳${data.min_purchase_amount}`);
-      }
-
-      // Calculate discount
-      let discountAmount = 0;
-      if (data.discount_type === "percentage") {
-        discountAmount = (amount * data.discount_value) / 100;
-      } else {
-        discountAmount = data.discount_value;
-      }
-
+      
       return {
-        coupon: data as CouponCode,
-        discountAmount: Math.min(discountAmount, amount),
+        coupon: response.coupon as CouponCode,
+        discountAmount: response.discountAmount,
       };
     },
     onSuccess: () => {

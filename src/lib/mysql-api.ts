@@ -382,12 +382,94 @@ export const paymentsApi = {
  * Testimonials API
  */
 export const testimonialsApi = {
+  async list() {
+    return apiRequest<{ data: any[] }>('/testimonials.php');
+  },
+  
   async featured() {
     return apiRequest<{ data: any[] }>('/testimonials.php?featured=1');
   },
   
   async byCourse(courseId: number) {
     return apiRequest<{ data: any[] }>(`/testimonials.php?course_id=${courseId}`);
+  },
+  
+  async update(id: number, data: any) {
+    return apiRequest<{ success: boolean; data: any }>(`/testimonials.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async delete(id: number) {
+    return apiRequest<{ success: boolean }>(`/testimonials.php?id=${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+/**
+ * Coupons API
+ */
+export const couponsApi = {
+  async list() {
+    return apiRequest<{ data: any[] }>('/coupons.php');
+  },
+  
+  async create(data: any) {
+    return apiRequest<{ success: boolean; data: any }>('/coupons.php', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async update(id: number, data: any) {
+    return apiRequest<{ success: boolean; data: any }>(`/coupons.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  
+  async delete(id: number) {
+    return apiRequest<{ success: boolean }>(`/coupons.php?id=${id}`, {
+      method: 'DELETE',
+    });
+  },
+  
+  async validate(code: string, courseId: number, amount: number) {
+    return apiRequest<{ 
+      success: boolean; 
+      coupon: any; 
+      discountAmount: number;
+    }>('/coupons.php?action=validate', {
+      method: 'POST',
+      body: JSON.stringify({ code, course_id: courseId, amount }),
+    });
+  },
+};
+
+/**
+ * Users API (Admin)
+ */
+export const usersApi = {
+  async list(search?: string) {
+    const query = search ? `?search=${encodeURIComponent(search)}` : '';
+    return apiRequest<{ data: any[] }>(`/users.php${query}`);
+  },
+  
+  async getRoles() {
+    return apiRequest<{ data: any[] }>('/users.php?action=roles');
+  },
+  
+  async updateRole(userId: number, role: string) {
+    return apiRequest<{ success: boolean }>('/users.php?action=update-role', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId, role }),
+    });
+  },
+  
+  async getEnrollmentCounts() {
+    return apiRequest<{ data: Record<number, number> }>('/users.php?action=enrollment-counts');
   },
 };
 
