@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { testimonialsApi } from "@/lib/mysql-api";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -25,31 +25,19 @@ const AdminTestimonials = () => {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [testimonialToDelete, setTestimonialToDelete] = useState<string | null>(null);
+  const [testimonialToDelete, setTestimonialToDelete] = useState<number | null>(null);
 
   const { data: testimonials, isLoading } = useQuery({
     queryKey: ["admin-testimonials"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("testimonials")
-        .select(`
-          *,
-          course:courses(title)
-        `)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
+      const response = await testimonialsApi.list();
+      return response.data;
     },
   });
 
   const updateTestimonial = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
-      const { error } = await supabase
-        .from("testimonials")
-        .update(updates)
-        .eq("id", id);
-      if (error) throw error;
+    mutationFn: async ({ id, updates }: { id: number; updates: any }) => {
+      return testimonialsApi.update(id, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-testimonials"] });
@@ -58,9 +46,8 @@ const AdminTestimonials = () => {
   });
 
   const deleteTestimonial = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("testimonials").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async (id: number) => {
+      return testimonialsApi.delete(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-testimonials"] });
@@ -68,20 +55,20 @@ const AdminTestimonials = () => {
     },
   });
 
-  const filteredTestimonials = testimonials?.filter(t =>
+  const filteredTestimonials = testimonials?.filter((t: any) =>
     t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     t.content.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const handleApprove = (id: string, isApproved: boolean) => {
+  const handleApprove = (id: number, isApproved: boolean) => {
     updateTestimonial.mutate({ id, updates: { is_approved: isApproved } });
   };
 
-  const handleFeature = (id: string, isFeatured: boolean) => {
+  const handleFeature = (id: number, isFeatured: boolean) => {
     updateTestimonial.mutate({ id, updates: { is_featured: isFeatured } });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number) => {
     setTestimonialToDelete(id);
     setDeleteDialogOpen(true);
   };
@@ -122,7 +109,7 @@ const AdminTestimonials = () => {
       {/* Testimonials List */}
       <div className="space-y-4">
         {filteredTestimonials.length > 0 ? (
-          filteredTestimonials.map((testimonial, index) => (
+          filteredTestimonials.map((testimonial: any, index: number) => (
             <motion.div
               key={testimonial.id}
               initial={{ opacity: 0, y: 20 }}
@@ -150,8 +137,8 @@ const AdminTestimonials = () => {
                   </div>
                   <p className="text-muted-foreground mb-3">{testimonial.content}</p>
                   <div className="flex items-center gap-3 text-sm">
-                    {testimonial.course && (
-                      <span className="text-primary">{testimonial.course.title}</span>
+                    {testimonial.course_title && (
+                      <span className="text-primary">{testimonial.course_title}</span>
                     )}
                     <span className="text-muted-foreground">
                       {format(new Date(testimonial.created_at), "dd/MM/yyyy")}

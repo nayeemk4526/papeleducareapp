@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { courseMaterialsApi } from "@/lib/mysql-api";
 
 export interface CourseMaterial {
-  id: string;
-  course_id: string;
+  id: number;
+  course_id: number;
   title: string;
   file_url: string;
   file_type: string | null;
@@ -13,19 +13,15 @@ export interface CourseMaterial {
 }
 
 export const useCourseMaterials = (courseId: string | number) => {
+  const numericCourseId = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
+  
   return useQuery({
-    queryKey: ["course-materials", courseId],
+    queryKey: ["course-materials", numericCourseId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("course_materials")
-        .select("*")
-        .eq("course_id", String(courseId))
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-      return data as CourseMaterial[];
+      const response = await courseMaterialsApi.getByCourse(numericCourseId);
+      return response.data as CourseMaterial[];
     },
-    enabled: !!courseId,
+    enabled: !!numericCourseId,
   });
 };
 
