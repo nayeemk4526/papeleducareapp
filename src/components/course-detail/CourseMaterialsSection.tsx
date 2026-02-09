@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useIsEnrolled } from "@/hooks/useEnrollments";
 
 interface CourseMaterialsSectionProps {
-  courseId: string | number;
+  courseId: string;
 }
 
 const getFileIcon = (fileType: string | null) => {
@@ -19,9 +19,8 @@ const getFileIcon = (fileType: string | null) => {
 
 const CourseMaterialsSection = ({ courseId }: CourseMaterialsSectionProps) => {
   const { user } = useAuth();
-  const cid = String(courseId);
-  const { data: isEnrolled } = useIsEnrolled(cid);
-  const { data: materials, isLoading } = useCourseMaterials(cid);
+  const { data: isEnrolled } = useIsEnrolled(courseId);
+  const { data: materials, isLoading } = useCourseMaterials(courseId);
 
   if (isLoading) {
     return (

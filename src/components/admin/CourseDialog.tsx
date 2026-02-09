@@ -30,8 +30,8 @@ const CourseDialog = ({ open, onOpenChange, course }: CourseDialogProps) => {
     short_description: course?.short_description || "",
     price: course?.price || 0,
     discount_price: course?.discount_price || undefined,
-    category_id: course?.category_id || undefined,
-    instructor_id: course?.instructor_id || undefined,
+    category_id: course?.category_id || "",
+    instructor_id: course?.instructor_id || "",
     duration_hours: course?.duration_hours || undefined,
     total_lessons: course?.total_lessons || 0,
     thumbnail_url: course?.thumbnail_url || "",
@@ -53,7 +53,7 @@ const CourseDialog = ({ open, onOpenChange, course }: CourseDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Clean up form data
+    // Clean up form data - convert empty strings to null for UUID fields
     const cleanedData: CourseFormData = {
       ...formData,
       category_id: formData.category_id || undefined,
@@ -141,15 +141,15 @@ const CourseDialog = ({ open, onOpenChange, course }: CourseDialogProps) => {
             <div className="space-y-2">
               <Label htmlFor="category">ক্যাটাগরি</Label>
               <Select 
-                value={formData.category_id ? String(formData.category_id) : undefined} 
-                onValueChange={(value) => setFormData({ ...formData, category_id: Number(value) })}
+                value={formData.category_id || undefined} 
+                onValueChange={(value) => setFormData({ ...formData, category_id: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="ক্যাটাগরি নির্বাচন করুন" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories?.map((cat) => (
-                    <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -158,15 +158,15 @@ const CourseDialog = ({ open, onOpenChange, course }: CourseDialogProps) => {
             <div className="space-y-2">
               <Label htmlFor="instructor">শিক্ষক</Label>
               <Select 
-                value={formData.instructor_id ? String(formData.instructor_id) : undefined} 
-                onValueChange={(value) => setFormData({ ...formData, instructor_id: Number(value) })}
+                value={formData.instructor_id || undefined} 
+                onValueChange={(value) => setFormData({ ...formData, instructor_id: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="শিক্ষক নির্বাচন করুন" />
                 </SelectTrigger>
                 <SelectContent>
                   {teachers?.map((teacher) => (
-                    <SelectItem key={teacher.id} value={String(teacher.id)}>{teacher.name}</SelectItem>
+                    <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

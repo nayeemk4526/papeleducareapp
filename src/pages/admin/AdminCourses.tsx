@@ -38,7 +38,7 @@ const AdminCourses = () => {
   const [enrollmentDialogOpen, setEnrollmentDialogOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
 
   const filteredCourses = courses?.filter(course =>
     course.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -59,7 +59,7 @@ const AdminCourses = () => {
     setEnrollmentDialogOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setCourseToDelete(id);
     setDeleteDialogOpen(true);
   };

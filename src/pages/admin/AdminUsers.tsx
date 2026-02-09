@@ -10,11 +10,21 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import AdminLayout from "@/components/admin/AdminLayout";
 import EnrollmentDialog from "@/components/admin/EnrollmentDialog";
 import { useAllUsers } from "@/hooks/useAdminEnrollments";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { usersApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -30,8 +40,11 @@ const AdminUsers = () => {
   const { data: userRoles } = useQuery({
     queryKey: ["user-roles"],
     queryFn: async () => {
-      const response = await usersApi.getRoles();
-      return response.data;
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("*");
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -39,14 +52,30 @@ const AdminUsers = () => {
   const { data: enrollmentCounts } = useQuery({
     queryKey: ["enrollment-counts"],
     queryFn: async () => {
-      const response = await usersApi.getEnrollmentCounts();
-      return response.data;
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select("user_id");
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data.forEach(e => {
+        counts[e.user_id] = (counts[e.user_id] || 0) + 1;
+      });
+      return counts;
     },
   });
 
   const updateRole = useMutation({
-    mutationFn: async ({ userId, role }: { userId: number; role: string }) => {
-      return usersApi.updateRole(userId, role);
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      // Delete existing role
+      await supabase.from("user_roles").delete().eq("user_id", userId);
+      
+      // Insert new role
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: role as "student" | "admin" | "teacher" });
+      
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-roles"] });
@@ -57,8 +86,8 @@ const AdminUsers = () => {
     },
   });
 
-  const getUserRole = (userId: number) => {
-    const role = userRoles?.find((r: any) => r.user_id === userId);
+  const getUserRole = (userId: string) => {
+    const role = userRoles?.find(r => r.user_id === userId);
     return role?.role || "student";
   };
 
@@ -73,7 +102,7 @@ const AdminUsers = () => {
     }
   };
 
-  const filteredUsers = users?.filter((u: any) =>
+  const filteredUsers = users?.filter(u =>
     u.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (u.phone && u.phone.includes(searchTerm))
@@ -128,7 +157,7 @@ const AdminUsers = () => {
             </thead>
             <tbody>
               {filteredUsers.length > 0 ? (
-                filteredUsers.map((u: any) => {
+                filteredUsers.map((u) => {
                   const role = getUserRole(u.user_id);
                   return (
                     <tr key={u.id} className="border-t border-border hover:bg-muted/30">

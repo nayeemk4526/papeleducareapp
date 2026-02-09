@@ -9,7 +9,7 @@ import { useCreateCourseMaterial, useUpdateCourseMaterial, type CourseMaterialFo
 interface MaterialDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  courseId: string | number;
+  courseId: string;
   material?: any;
 }
 
@@ -19,7 +19,7 @@ const MaterialDialog = ({ open, onOpenChange, courseId, material }: MaterialDial
   const updateMaterial = useUpdateCourseMaterial();
 
   const [formData, setFormData] = useState<CourseMaterialFormData>({
-    course_id: String(courseId),
+    course_id: courseId,
     title: "",
     file_url: "",
     file_type: "",
@@ -30,7 +30,7 @@ const MaterialDialog = ({ open, onOpenChange, courseId, material }: MaterialDial
   useEffect(() => {
     if (material) {
       setFormData({
-        course_id: String(courseId),
+        course_id: courseId,
         title: material.title || "",
         file_url: material.file_url || "",
         file_type: material.file_type || "",
@@ -39,7 +39,7 @@ const MaterialDialog = ({ open, onOpenChange, courseId, material }: MaterialDial
       });
     } else {
       setFormData({
-        course_id: String(courseId),
+        course_id: courseId,
         title: "",
         file_url: "",
         file_type: "",

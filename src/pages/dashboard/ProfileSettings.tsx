@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { profilesApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -44,10 +44,15 @@ const ProfileSettings = () => {
 
     setIsLoading(true);
     try {
-      await profilesApi.update({
-        full_name: formData.full_name,
-        phone: formData.phone,
-      });
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: formData.full_name,
+          phone: formData.phone,
+        })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
 
       await refreshProfile();
       toast({

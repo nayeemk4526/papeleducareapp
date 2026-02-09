@@ -8,8 +8,8 @@ export interface Category {
   description: string | null;
   icon_name: string | null;
   image_url: string | null;
-  is_published: boolean | null;
-  display_order: number | null;
+  is_published: boolean;
+  display_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +23,7 @@ export const useCategories = () => {
         .select("*")
         .eq("is_published", true)
         .order("display_order", { ascending: true });
+
       if (error) throw error;
       return data as Category[];
     },
@@ -37,9 +38,11 @@ export const useCategoryBySlug = (slug: string) => {
         .from("categories")
         .select("*")
         .eq("slug", slug)
-        .single();
+        .eq("is_published", true)
+        .maybeSingle();
+
       if (error) throw error;
-      return data as Category;
+      return data as Category | null;
     },
     enabled: !!slug,
   });

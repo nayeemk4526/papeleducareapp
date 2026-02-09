@@ -8,9 +8,9 @@ export interface Testimonial {
   name: string;
   role: string | null;
   content: string;
-  rating: number | null;
-  is_approved: boolean | null;
-  is_featured: boolean | null;
+  rating: number;
+  is_approved: boolean;
+  is_featured: boolean;
   created_at: string;
 }
 
@@ -22,7 +22,9 @@ export const useTestimonialsByCourse = (courseId: string) => {
         .from("testimonials")
         .select("*")
         .eq("course_id", courseId)
-        .eq("is_approved", true);
+        .eq("is_approved", true)
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
       return data as Testimonial[];
     },
@@ -38,7 +40,10 @@ export const useFeaturedTestimonials = () => {
         .from("testimonials")
         .select("*")
         .eq("is_approved", true)
-        .eq("is_featured", true);
+        .eq("is_featured", true)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
       if (error) throw error;
       return data as Testimonial[];
     },

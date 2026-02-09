@@ -22,7 +22,7 @@ const CouponDialog = ({ open, onOpenChange, coupon }: CouponDialogProps) => {
 
   const [formData, setFormData] = useState<CouponFormData>({
     code: coupon?.code || "",
-    discount_type: (coupon?.discount_type as "percentage" | "fixed") || "percentage",
+    discount_type: coupon?.discount_type || "percentage",
     discount_value: coupon?.discount_value || 0,
     max_uses: coupon?.max_uses || null,
     min_purchase_amount: coupon?.min_purchase_amount || 0,
@@ -147,8 +147,8 @@ const CouponDialog = ({ open, onOpenChange, coupon }: CouponDialogProps) => {
           <div className="space-y-2">
             <Label htmlFor="course">নির্দিষ্ট কোর্স (ঐচ্ছিক)</Label>
             <Select 
-              value={formData.course_id ? String(formData.course_id) : "all"} 
-              onValueChange={(value) => setFormData({ ...formData, course_id: value === "all" ? null : Number(value) })}
+              value={formData.course_id || "all"} 
+              onValueChange={(value) => setFormData({ ...formData, course_id: value === "all" ? null : value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="সব কোর্সে প্রযোজ্য" />
@@ -156,7 +156,7 @@ const CouponDialog = ({ open, onOpenChange, coupon }: CouponDialogProps) => {
               <SelectContent>
                 <SelectItem value="all">সব কোর্সে প্রযোজ্য</SelectItem>
                 {courses?.map((course) => (
-                  <SelectItem key={course.id} value={String(course.id)}>{course.title}</SelectItem>
+                  <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -8,7 +8,7 @@ export interface CourseMaterial {
   file_url: string;
   file_type: string | null;
   file_size_bytes: number | null;
-  is_downloadable: boolean | null;
+  is_downloadable: boolean;
   created_at: string;
 }
 
@@ -19,7 +19,9 @@ export const useCourseMaterials = (courseId: string) => {
       const { data, error } = await supabase
         .from("course_materials")
         .select("*")
-        .eq("course_id", courseId);
+        .eq("course_id", courseId)
+        .order("created_at", { ascending: true });
+
       if (error) throw error;
       return data as CourseMaterial[];
     },

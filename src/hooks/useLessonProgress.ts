@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface LessonProgress {
   id: string;
   user_id: string;
   lesson_id: string;
-  is_completed: boolean | null;
-  watch_time_seconds: number | null;
+  is_completed: boolean;
+  watch_time_seconds: number;
   completed_at: string | null;
   created_at: string;
 }
@@ -19,20 +19,25 @@ export const useLessonProgress = (courseId: string) => {
     queryKey: ["lesson-progress", user?.id, courseId],
     queryFn: async () => {
       if (!user) return [];
+
       // Get all lessons for this course first
-      const { data: lessons } = await supabase
+      const { data: lessons, error: lessonsError } = await supabase
         .from("lessons")
         .select("id")
         .eq("course_id", courseId);
-      
-      if (!lessons || lessons.length === 0) return [];
-      
-      const lessonIds = lessons.map(l => l.id);
+
+      if (lessonsError) throw lessonsError;
+
+      const lessonIds = lessons?.map((l) => l.id) || [];
+
+      if (lessonIds.length === 0) return [];
+
       const { data, error } = await supabase
         .from("lesson_progress")
         .select("*")
         .eq("user_id", user.id)
         .in("lesson_id", lessonIds);
+
       if (error) throw error;
       return data as LessonProgress[];
     },
@@ -58,28 +63,42 @@ export const useUpdateLessonProgress = () => {
     }) => {
       if (!user) throw new Error("User not authenticated");
 
+      // Check if progress exists
       const { data: existing } = await supabase
         .from("lesson_progress")
-        .select("id")
+        .select("id, watch_time_seconds")
         .eq("user_id", user.id)
         .eq("lesson_id", lessonId)
-        .single();
+        .maybeSingle();
 
       if (existing) {
-        const updates: any = {};
+        // Update existing
+        const updateData: Record<string, unknown> = {};
         if (isCompleted !== undefined) {
-          updates.is_completed = isCompleted;
-          if (isCompleted) updates.completed_at = new Date().toISOString();
+          updateData.is_completed = isCompleted;
+          if (isCompleted) {
+            updateData.completed_at = new Date().toISOString();
+          }
         }
-        if (watchTimeSeconds !== undefined) updates.watch_time_seconds = watchTimeSeconds;
+        if (watchTimeSeconds !== undefined) {
+          updateData.watch_time_seconds = Math.max(
+            existing.watch_time_seconds || 0,
+            watchTimeSeconds
+          );
+        }
 
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("lesson_progress")
-          .update(updates)
-          .eq("id", existing.id);
+          .update(updateData)
+          .eq("id", existing.id)
+          .select()
+          .single();
+
         if (error) throw error;
+        return { data, courseId };
       } else {
-        const { error } = await supabase
+        // Create new
+        const { data, error } = await supabase
           .from("lesson_progress")
           .insert({
             user_id: user.id,
@@ -87,13 +106,15 @@ export const useUpdateLessonProgress = () => {
             is_completed: isCompleted || false,
             watch_time_seconds: watchTimeSeconds || 0,
             completed_at: isCompleted ? new Date().toISOString() : null,
-          });
-        if (error) throw error;
-      }
+          })
+          .select()
+          .single();
 
-      return { courseId };
+        if (error) throw error;
+        return { data, courseId };
+      }
     },
-    onSuccess: () => {
+    onSuccess: ({ courseId }) => {
       queryClient.invalidateQueries({ queryKey: ["lesson-progress"] });
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });
     },
@@ -104,8 +125,18 @@ export const useMarkLessonComplete = () => {
   const updateProgress = useUpdateLessonProgress();
 
   return useMutation({
-    mutationFn: async ({ lessonId, courseId }: { lessonId: string; courseId: string }) => {
-      return updateProgress.mutateAsync({ lessonId, courseId, isCompleted: true });
+    mutationFn: async ({
+      lessonId,
+      courseId,
+    }: {
+      lessonId: string;
+      courseId: string;
+    }) => {
+      return updateProgress.mutateAsync({
+        lessonId,
+        courseId,
+        isCompleted: true,
+      });
     },
   });
 };

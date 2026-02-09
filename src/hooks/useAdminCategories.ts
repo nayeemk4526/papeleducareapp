@@ -16,7 +16,11 @@ export const useAdminCategories = () => {
   return useQuery({
     queryKey: ["admin-categories"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("categories").select("*").order("display_order");
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("display_order", { ascending: true });
+
       if (error) throw error;
       return data;
     },
@@ -26,9 +30,15 @@ export const useAdminCategories = () => {
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
     mutationFn: async (category: CategoryFormData) => {
-      const { data, error } = await supabase.from("categories").insert(category).select().single();
+      const { data, error } = await supabase
+        .from("categories")
+        .insert(category)
+        .select()
+        .single();
+
       if (error) throw error;
       return data;
     },
@@ -37,16 +47,25 @@ export const useCreateCategory = () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({ title: "সফল!", description: "ক্যাটাগরি সফলভাবে তৈরি হয়েছে" });
     },
-    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
+    onError: (error: Error) => {
+      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
+    },
   });
 };
 
 export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
     mutationFn: async ({ id, ...category }: CategoryFormData & { id: string }) => {
-      const { data, error } = await supabase.from("categories").update(category).eq("id", id).select().single();
+      const { data, error } = await supabase
+        .from("categories")
+        .update(category)
+        .eq("id", id)
+        .select()
+        .single();
+
       if (error) throw error;
       return data;
     },
@@ -55,13 +74,16 @@ export const useUpdateCategory = () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({ title: "সফল!", description: "ক্যাটাগরি সফলভাবে আপডেট হয়েছে" });
     },
-    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
+    onError: (error: Error) => {
+      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
+    },
   });
 };
 
 export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("categories").delete().eq("id", id);
@@ -72,6 +94,8 @@ export const useDeleteCategory = () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({ title: "সফল!", description: "ক্যাটাগরি সফলভাবে মুছে ফেলা হয়েছে" });
     },
-    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
+    onError: (error: Error) => {
+      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
+    },
   });
 };

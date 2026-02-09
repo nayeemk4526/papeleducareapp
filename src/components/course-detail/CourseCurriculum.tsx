@@ -7,15 +7,14 @@ import { usePublicLessonsByCourse, usePublicSectionsByCourse } from "@/hooks/use
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface CourseCurriculumProps {
-  courseId: string | number;
+  courseId: string;
   totalLessons: number;
   durationHours: number;
 }
 
 const CourseCurriculum = ({ courseId, totalLessons, durationHours }: CourseCurriculumProps) => {
-  const cid = String(courseId);
-  const { data: lessons, isLoading: lessonsLoading } = usePublicLessonsByCourse(cid);
-  const { data: sections, isLoading: sectionsLoading } = usePublicSectionsByCourse(cid);
+  const { data: lessons, isLoading: lessonsLoading } = usePublicLessonsByCourse(courseId);
+  const { data: sections, isLoading: sectionsLoading } = usePublicSectionsByCourse(courseId);
   const [showAll, setShowAll] = useState(false);
 
   const isLoading = lessonsLoading || sectionsLoading;
@@ -39,7 +38,7 @@ const CourseCurriculum = ({ courseId, totalLessons, durationHours }: CourseCurri
   }
 
   // Group lessons by section
-  const getLessonsForSection = (sectionId: number | string) => {
+  const getLessonsForSection = (sectionId: string) => {
     return lessons?.filter(l => l.section_id === sectionId) || [];
   };
 
@@ -84,7 +83,7 @@ const CourseCurriculum = ({ courseId, totalLessons, durationHours }: CourseCurri
               return (
                 <AccordionItem
                   key={section.id}
-                  value={String(section.id)}
+                  value={section.id}
                   className="border border-border rounded-lg px-4 bg-muted/30"
                 >
                   <AccordionTrigger className="hover:no-underline py-4">
@@ -192,7 +191,7 @@ const CourseCurriculum = ({ courseId, totalLessons, durationHours }: CourseCurri
             {!hasSections && displayUnassignedLessons.map((lesson, index) => (
               <AccordionItem
                 key={lesson.id}
-                value={String(lesson.id)}
+                value={lesson.id}
                 className="border border-border rounded-lg px-4 bg-muted/30"
               >
                 <AccordionTrigger className="hover:no-underline py-4">

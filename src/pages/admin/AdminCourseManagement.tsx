@@ -73,7 +73,7 @@ const AdminCourseManagement = () => {
   
   // Delete confirmation
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: number; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string; name: string } | null>(null);
   
   // Collapsed sections
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
@@ -127,7 +127,7 @@ const AdminCourseManagement = () => {
     setOutcomeDialogOpen(true);
   };
 
-  const handleDelete = (type: string, id: number, name: string) => {
+  const handleDelete = (type: string, id: string, name: string) => {
     setDeleteTarget({ type, id, name });
     setDeleteDialogOpen(true);
   };
@@ -135,20 +135,18 @@ const AdminCourseManagement = () => {
   const confirmDelete = async () => {
     if (!deleteTarget || !courseId) return;
     
-    const numericCourseId = Number(courseId);
-    
     switch (deleteTarget.type) {
       case "section":
-        await deleteSection.mutateAsync({ id: deleteTarget.id, courseId: numericCourseId });
+        await deleteSection.mutateAsync({ id: deleteTarget.id, courseId });
         break;
       case "lesson":
-        await deleteLesson.mutateAsync({ id: deleteTarget.id, courseId: numericCourseId });
+        await deleteLesson.mutateAsync({ id: deleteTarget.id, courseId });
         break;
       case "material":
-        await deleteMaterial.mutateAsync({ id: deleteTarget.id, courseId: numericCourseId });
+        await deleteMaterial.mutateAsync({ id: deleteTarget.id, courseId });
         break;
       case "outcome":
-        await deleteOutcome.mutateAsync({ id: deleteTarget.id, courseId: numericCourseId });
+        await deleteOutcome.mutateAsync({ id: deleteTarget.id, courseId });
         break;
     }
     
@@ -157,7 +155,7 @@ const AdminCourseManagement = () => {
   };
 
   // Group lessons by section
-  const getLessonsForSection = (sectionId: number) => {
+  const getLessonsForSection = (sectionId: string) => {
     return lessons?.filter(l => l.section_id === sectionId) || [];
   };
 

@@ -26,8 +26,13 @@ export const useAdminCourses = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("courses")
-        .select("*, category:categories(id, name, slug), instructor:teachers(id, name, title, avatar_url)")
+        .select(`
+          *,
+          category:categories(id, name),
+          instructor:teachers(id, name)
+        `)
         .order("created_at", { ascending: false });
+
       if (error) throw error;
       return data;
     },
@@ -40,7 +45,12 @@ export const useCreateCourse = () => {
 
   return useMutation({
     mutationFn: async (course: CourseFormData) => {
-      const { data, error } = await supabase.from("courses").insert(course).select().single();
+      const { data, error } = await supabase
+        .from("courses")
+        .insert(course)
+        .select()
+        .single();
+
       if (error) throw error;
       return data;
     },
@@ -61,7 +71,13 @@ export const useUpdateCourse = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...course }: CourseFormData & { id: string }) => {
-      const { data, error } = await supabase.from("courses").update(course).eq("id", id).select().single();
+      const { data, error } = await supabase
+        .from("courses")
+        .update(course)
+        .eq("id", id)
+        .select()
+        .single();
+
       if (error) throw error;
       return data;
     },

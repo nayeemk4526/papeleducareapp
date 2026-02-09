@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface Enrollment {
   id: string;
   user_id: string;
   course_id: string;
-  progress_percentage: number | null;
+  progress_percentage: number;
   last_accessed_lesson_id: string | null;
   enrolled_at: string;
   completed_at: string | null;
@@ -16,8 +16,11 @@ export interface Enrollment {
     title: string;
     slug: string;
     thumbnail_url: string | null;
-    total_lessons: number | null;
-    instructor?: { id: string; name: string } | null;
+    total_lessons: number;
+    instructor?: {
+      id: string;
+      name: string;
+    } | null;
   };
 }
 
@@ -28,10 +31,19 @@ export const useEnrollments = () => {
     queryKey: ["enrollments", user?.id],
     queryFn: async () => {
       if (!user) return [];
+
       const { data, error } = await supabase
         .from("enrollments")
-        .select("*, course:courses(id, title, slug, thumbnail_url, total_lessons, instructor:teachers(id, name))")
-        .eq("user_id", user.id);
+        .select(`
+          *,
+          course:courses(
+            id, title, slug, thumbnail_url, total_lessons,
+            instructor:teachers(id, name)
+          )
+        `)
+        .eq("user_id", user.id)
+        .order("enrolled_at", { ascending: false });
+
       if (error) throw error;
       return data as Enrollment[];
     },
@@ -46,7 +58,15 @@ export const useIsEnrolled = (courseId: string) => {
     queryKey: ["enrollment", user?.id, courseId],
     queryFn: async () => {
       if (!user || !courseId) return false;
-      const { data } = await supabase.rpc('is_enrolled', { _course_id: courseId });
+
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("course_id", courseId)
+        .maybeSingle();
+
+      if (error) throw error;
       return !!data;
     },
     enabled: !!user && !!courseId,
@@ -60,7 +80,18 @@ export const useEnrollInCourse = () => {
   return useMutation({
     mutationFn: async (courseId: string) => {
       if (!user) throw new Error("User not authenticated");
-      throw new Error("Direct enrollment not supported. Please complete payment.");
+
+      const { data, error } = await supabase
+        .from("enrollments")
+        .insert({
+          user_id: user.id,
+          course_id: courseId,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });

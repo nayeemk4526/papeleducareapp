@@ -8,7 +8,7 @@ import { useCreateLearningOutcome, useUpdateLearningOutcome, type LearningOutcom
 interface LearningOutcomeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  courseId: string | number;
+  courseId: string;
   outcome?: any;
   nextOrder?: number;
 }
@@ -19,7 +19,7 @@ const LearningOutcomeDialog = ({ open, onOpenChange, courseId, outcome, nextOrde
   const updateOutcome = useUpdateLearningOutcome();
 
   const [formData, setFormData] = useState<LearningOutcomeFormData>({
-    course_id: String(courseId),
+    course_id: courseId,
     content: "",
     display_order: nextOrder,
   });
@@ -27,13 +27,13 @@ const LearningOutcomeDialog = ({ open, onOpenChange, courseId, outcome, nextOrde
   useEffect(() => {
     if (outcome) {
       setFormData({
-        course_id: String(courseId),
+        course_id: courseId,
         content: outcome.content || "",
         display_order: outcome.display_order || nextOrder,
       });
     } else {
       setFormData({
-        course_id: String(courseId),
+        course_id: courseId,
         content: "",
         display_order: nextOrder,
       });

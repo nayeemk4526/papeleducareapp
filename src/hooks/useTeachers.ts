@@ -12,7 +12,7 @@ export interface Teacher {
   email: string | null;
   phone: string | null;
   specializations: string[] | null;
-  is_active: boolean | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -24,7 +24,9 @@ export const useTeachers = () => {
       const { data, error } = await supabase
         .from("teachers")
         .select("*")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .order("created_at", { ascending: true });
+
       if (error) throw error;
       return data as Teacher[];
     },
@@ -39,9 +41,10 @@ export const useTeacherById = (id: string) => {
         .from("teachers")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
+
       if (error) throw error;
-      return data as Teacher;
+      return data as Teacher | null;
     },
     enabled: !!id,
   });

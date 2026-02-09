@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { authApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import logoImage from "@/assets/logo.png";
 
@@ -31,10 +31,12 @@ const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      const result = await authApi.forgotPassword(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
 
-      if (!result.success) {
-        throw new Error(result.message || "কিছু ভুল হয়েছে");
+      if (error) {
+        throw error;
       }
 
       setIsSuccess(true);

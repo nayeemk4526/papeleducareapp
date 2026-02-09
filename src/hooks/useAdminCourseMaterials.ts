@@ -15,7 +15,12 @@ export const useAdminCourseMaterials = (courseId?: string) => {
   return useQuery({
     queryKey: ["admin-course-materials", courseId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("course_materials").select("*").eq("course_id", courseId!);
+      const { data, error } = await supabase
+        .from("course_materials")
+        .select("*")
+        .eq("course_id", courseId!)
+        .order("created_at", { ascending: true });
+
       if (error) throw error;
       return data;
     },
@@ -26,9 +31,15 @@ export const useAdminCourseMaterials = (courseId?: string) => {
 export const useCreateCourseMaterial = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
     mutationFn: async (material: CourseMaterialFormData) => {
-      const { data, error } = await supabase.from("course_materials").insert(material).select().single();
+      const { data, error } = await supabase
+        .from("course_materials")
+        .insert(material)
+        .select()
+        .single();
+
       if (error) throw error;
       return data;
     },
@@ -37,16 +48,25 @@ export const useCreateCourseMaterial = () => {
       queryClient.invalidateQueries({ queryKey: ["course-materials", data.course_id] });
       toast({ title: "সফল!", description: "ম্যাটেরিয়াল সফলভাবে যোগ হয়েছে" });
     },
-    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
+    onError: (error: Error) => {
+      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
+    },
   });
 };
 
 export const useUpdateCourseMaterial = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
     mutationFn: async ({ id, ...material }: CourseMaterialFormData & { id: string }) => {
-      const { data, error } = await supabase.from("course_materials").update(material).eq("id", id).select().single();
+      const { data, error } = await supabase
+        .from("course_materials")
+        .update(material)
+        .eq("id", id)
+        .select()
+        .single();
+
       if (error) throw error;
       return data;
     },
@@ -55,13 +75,16 @@ export const useUpdateCourseMaterial = () => {
       queryClient.invalidateQueries({ queryKey: ["course-materials", data.course_id] });
       toast({ title: "সফল!", description: "ম্যাটেরিয়াল সফলভাবে আপডেট হয়েছে" });
     },
-    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
+    onError: (error: Error) => {
+      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
+    },
   });
 };
 
 export const useDeleteCourseMaterial = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
     mutationFn: async ({ id, courseId }: { id: string; courseId: string }) => {
       const { error } = await supabase.from("course_materials").delete().eq("id", id);
@@ -73,6 +96,8 @@ export const useDeleteCourseMaterial = () => {
       queryClient.invalidateQueries({ queryKey: ["course-materials", courseId] });
       toast({ title: "সফল!", description: "ম্যাটেরিয়াল সফলভাবে মুছে ফেলা হয়েছে" });
     },
-    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
+    onError: (error: Error) => {
+      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
+    },
   });
 };

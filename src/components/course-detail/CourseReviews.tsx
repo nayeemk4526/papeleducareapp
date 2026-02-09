@@ -5,11 +5,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface CourseReviewsProps {
-  courseId: string | number;
+  courseId: string;
 }
 
 const CourseReviews = ({ courseId }: CourseReviewsProps) => {
-  const { data: reviews, isLoading } = useTestimonialsByCourse(String(courseId));
+  const { data: reviews, isLoading } = useTestimonialsByCourse(courseId);
 
   if (isLoading) {
     return (

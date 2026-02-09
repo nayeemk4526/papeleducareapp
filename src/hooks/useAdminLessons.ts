@@ -19,7 +19,16 @@ export const useAdminLessons = (courseId?: string) => {
   return useQuery({
     queryKey: ["admin-lessons", courseId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("lessons").select("*").eq("course_id", courseId!).order("lesson_order");
+      let query = supabase
+        .from("lessons")
+        .select("*")
+        .order("lesson_order", { ascending: true });
+
+      if (courseId) {
+        query = query.eq("course_id", courseId);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
@@ -30,9 +39,15 @@ export const useAdminLessons = (courseId?: string) => {
 export const useCreateLesson = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
     mutationFn: async (lesson: LessonFormData) => {
-      const { data, error } = await supabase.from("lessons").insert(lesson).select().single();
+      const { data, error } = await supabase
+        .from("lessons")
+        .insert(lesson)
+        .select()
+        .single();
+
       if (error) throw error;
       return data;
     },
@@ -41,16 +56,25 @@ export const useCreateLesson = () => {
       queryClient.invalidateQueries({ queryKey: ["lessons"] });
       toast({ title: "সফল!", description: "লেসন সফলভাবে তৈরি হয়েছে" });
     },
-    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
+    onError: (error: Error) => {
+      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
+    },
   });
 };
 
 export const useUpdateLesson = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
     mutationFn: async ({ id, ...lesson }: LessonFormData & { id: string }) => {
-      const { data, error } = await supabase.from("lessons").update(lesson).eq("id", id).select().single();
+      const { data, error } = await supabase
+        .from("lessons")
+        .update(lesson)
+        .eq("id", id)
+        .select()
+        .single();
+
       if (error) throw error;
       return data;
     },
@@ -59,13 +83,16 @@ export const useUpdateLesson = () => {
       queryClient.invalidateQueries({ queryKey: ["lessons"] });
       toast({ title: "সফল!", description: "লেসন সফলভাবে আপডেট হয়েছে" });
     },
-    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
+    onError: (error: Error) => {
+      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
+    },
   });
 };
 
 export const useDeleteLesson = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
     mutationFn: async ({ id, courseId }: { id: string; courseId: string }) => {
       const { error } = await supabase.from("lessons").delete().eq("id", id);
@@ -77,6 +104,8 @@ export const useDeleteLesson = () => {
       queryClient.invalidateQueries({ queryKey: ["lessons"] });
       toast({ title: "সফল!", description: "লেসন সফলভাবে মুছে ফেলা হয়েছে" });
     },
-    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
+    onError: (error: Error) => {
+      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
+    },
   });
 };

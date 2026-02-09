@@ -14,57 +14,103 @@ export const signUpSchema = z.object({
 });
 
 export const signInSchema = z.object({
-  email: z.string().min(1, "ইমেইল দিন"),
+  email: z.string().min(1, "ইমেইল বা ফোন নম্বর দিন"),
   password: z.string().min(1, "পাসওয়ার্ড দিন"),
 });
 
 export type SignUpFormData = z.infer<typeof signUpSchema>;
 export type SignInFormData = z.infer<typeof signInSchema>;
 
+// Sign up function
+export const signUp = async (data: SignUpFormData) => {
+  const redirectUrl = `${window.location.origin}/`;
+  
+  const { data: authData, error } = await supabase.auth.signUp({
+    email: data.email,
+    password: data.password,
+    options: {
+      emailRedirectTo: redirectUrl,
+      data: {
+        full_name: data.fullName,
+        phone: data.phone,
+      },
+    },
+  });
+
+  if (error) {
+    if (error.message.includes("already registered")) {
+      throw new Error("এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট তৈরি করা হয়েছে");
+    }
+    throw new Error(error.message);
+  }
+
+  return authData;
+};
+
 // Sign in function
 export const signIn = async (data: SignInFormData) => {
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
     email: data.email,
     password: data.password,
   });
-  
+
   if (error) {
-    throw new Error("ইমেইল বা পাসওয়ার্ড ভুল");
+    if (error.message.includes("Invalid login credentials")) {
+      throw new Error("ইমেইল বা পাসওয়ার্ড ভুল");
+    }
+    throw new Error(error.message);
   }
+
+  return authData;
 };
 
 // Sign out function
 export const signOut = async () => {
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) throw new Error(error.message);
 };
 
 // Check if user is admin
 export const checkIsAdmin = async (userId: string): Promise<boolean> => {
-  const { data } = await supabase.rpc('has_role', { _user_id: userId, _role: 'admin' });
-  return !!data;
+  const { data, error } = await supabase.rpc('has_role', {
+    _user_id: userId,
+    _role: 'admin'
+  });
+  
+  if (error) return false;
+  return data as boolean;
 };
 
 // Check if user is teacher
 export const checkIsTeacher = async (userId: string): Promise<boolean> => {
-  const { data } = await supabase.rpc('has_role', { _user_id: userId, _role: 'teacher' });
-  return !!data;
+  const { data, error } = await supabase.rpc('has_role', {
+    _user_id: userId,
+    _role: 'teacher'
+  });
+  
+  if (error) return false;
+  return data as boolean;
 };
 
 // Get user profile
 export const getUserProfile = async (userId: string) => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
+  
+  if (error) throw new Error(error.message);
   return data;
 };
 
 // Get user roles
 export const getUserRoles = async (userId: string) => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('user_roles')
     .select('role')
     .eq('user_id', userId);
+  
+  if (error) throw new Error(error.message);
   return data?.map(r => r.role) || [];
 };

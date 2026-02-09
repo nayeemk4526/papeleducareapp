@@ -26,7 +26,7 @@ const AdminCoupons = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<CouponCode | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [couponToDelete, setCouponToDelete] = useState<number | null>(null);
+  const [couponToDelete, setCouponToDelete] = useState<string | null>(null);
 
   const filteredCoupons = coupons?.filter(coupon =>
     coupon.code.toLowerCase().includes(searchTerm.toLowerCase())
@@ -37,7 +37,7 @@ const AdminCoupons = () => {
     setDialogOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setCouponToDelete(id);
     setDeleteDialogOpen(true);
   };

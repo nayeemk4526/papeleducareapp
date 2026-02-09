@@ -25,7 +25,7 @@ const AdminCategories = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
   const filteredCategories = categories?.filter(cat =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -36,7 +36,7 @@ const AdminCategories = () => {
     setDialogOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setCategoryToDelete(id);
     setDeleteDialogOpen(true);
   };

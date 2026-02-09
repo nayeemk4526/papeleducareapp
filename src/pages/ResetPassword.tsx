@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Lock, Eye, EyeOff, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { authApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import logoImage from "@/assets/logo.png";
 
@@ -16,22 +16,36 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [isValidToken, setIsValidToken] = useState(false);
-  const [isCheckingToken, setIsCheckingToken] = useState(true);
+  const [isValidSession, setIsValidSession] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
-  const token = searchParams.get("token");
-
   useEffect(() => {
-    // Check if token exists in URL
-    if (token) {
-      setIsValidToken(true);
-    }
-    setIsCheckingToken(false);
-  }, [token]);
+    // Check if user has a valid recovery session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // The user should have a session from the recovery link
+      if (session) {
+        setIsValidSession(true);
+      }
+      setIsCheckingSession(false);
+    };
+
+    checkSession();
+
+    // Listen for auth state changes (when user clicks recovery link)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsValidSession(true);
+        setIsCheckingSession(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,22 +77,15 @@ const ResetPassword = () => {
       return;
     }
 
-    if (!token) {
-      toast({
-        title: "অবৈধ লিংক",
-        description: "পাসওয়ার্ড রিসেট টোকেন পাওয়া যায়নি",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      const result = await authApi.resetPassword(token, password);
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      });
 
-      if (!result.success) {
-        throw new Error(result.message || "কিছু ভুল হয়েছে");
+      if (error) {
+        throw error;
       }
 
       setIsSuccess(true);
@@ -87,9 +94,9 @@ const ResetPassword = () => {
         description: "আপনার নতুন পাসওয়ার্ড সেট করা হয়েছে।",
       });
 
-      // Redirect to auth after 3 seconds
+      // Redirect to home after 3 seconds
       setTimeout(() => {
-        navigate("/auth");
+        navigate("/");
       }, 3000);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "কিছু ভুল হয়েছে";
@@ -103,7 +110,7 @@ const ResetPassword = () => {
     }
   };
 
-  if (isCheckingToken) {
+  if (isCheckingSession) {
     return (
       <>
         <Navbar />
@@ -114,7 +121,7 @@ const ResetPassword = () => {
     );
   }
 
-  if (!isValidToken && !isSuccess) {
+  if (!isValidSession && !isSuccess) {
     return (
       <>
         <Navbar />
@@ -190,7 +197,7 @@ const ResetPassword = () => {
                   <h2 className="text-lg font-semibold">পাসওয়ার্ড আপডেট হয়েছে!</h2>
                   <p className="text-muted-foreground text-sm">
                     আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।
-                    আপনাকে লগইন পেজে নিয়ে যাওয়া হচ্ছে...
+                    আপনাকে হোম পেজে নিয়ে যাওয়া হচ্ছে...
                   </p>
                 </div>
               ) : (

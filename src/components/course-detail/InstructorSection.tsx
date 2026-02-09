@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface InstructorSectionProps {
   instructor: {
-    id: string | number;
+    id: string;
     name: string;
     title: string | null;
     subtitle?: string | null;
@@ -16,7 +16,7 @@ interface InstructorSectionProps {
 }
 
 const InstructorSection = ({ instructor }: InstructorSectionProps) => {
-  const { data: fullInstructor } = useTeacherById(String(instructor?.id || ""));
+  const { data: fullInstructor } = useTeacherById(instructor?.id || "");
   
   const displayInstructor = fullInstructor || instructor;
 

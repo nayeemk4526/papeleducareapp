@@ -10,7 +10,7 @@ import { useCreateSection, useUpdateSection, type SectionFormData } from "@/hook
 interface SectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  courseId: string | number;
+  courseId: string;
   section?: any;
   nextOrder?: number;
 }
@@ -21,7 +21,7 @@ const SectionDialog = ({ open, onOpenChange, courseId, section, nextOrder = 1 }:
   const updateSection = useUpdateSection();
 
   const [formData, setFormData] = useState<SectionFormData>({
-    course_id: String(courseId),
+    course_id: courseId,
     title: "",
     description: "",
     section_order: nextOrder,
@@ -31,7 +31,7 @@ const SectionDialog = ({ open, onOpenChange, courseId, section, nextOrder = 1 }:
   useEffect(() => {
     if (section) {
       setFormData({
-        course_id: String(courseId),
+        course_id: courseId,
         title: section.title || "",
         description: section.description || "",
         section_order: section.section_order || nextOrder,
@@ -39,7 +39,7 @@ const SectionDialog = ({ open, onOpenChange, courseId, section, nextOrder = 1 }:
       });
     } else {
       setFormData({
-        course_id: String(courseId),
+        course_id: courseId,
         title: "",
         description: "",
         section_order: nextOrder,

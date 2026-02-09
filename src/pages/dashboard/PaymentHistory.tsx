@@ -1,40 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { CreditCard, CheckCircle, Clock, XCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { paymentsApi } from "@/lib/mysql-api";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
-interface Payment {
-  id: number;
-  course_id: number;
-  amount: number;
-  payment_method: string;
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
-  transaction_id: string | null;
-  payment_date: string;
-  course?: {
-    id: number;
-    title: string;
-  };
-}
 
 const PaymentHistory = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
-
-  const { data: payments = [], isLoading: paymentsLoading } = useQuery({
-    queryKey: ["user-payments", user?.id],
-    queryFn: async () => {
-      const response = await paymentsApi.list();
-      return response.data as Payment[];
-    },
-    enabled: !!user,
-  });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -42,13 +17,20 @@ const PaymentHistory = () => {
     }
   }, [user, authLoading, navigate]);
 
-  if (authLoading || paymentsLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>
     );
   }
+
+  // Placeholder payments
+  const payments = [
+    { id: 1, course: "ইলেকট্রিক্যাল টেকনোলজি", amount: 3000, method: "bKash", status: "completed", date: "২০২৪-০১-১৫" },
+    { id: 2, course: "ওয়েব ডেভেলপমেন্ট", amount: 5000, method: "Nagad", status: "completed", date: "২০২৪-০১-১০" },
+    { id: 3, course: "গ্রাফিক ডিজাইন", amount: 2500, method: "bKash", status: "pending", date: "২০২৪-০১-২০" },
+  ];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -57,7 +39,6 @@ const PaymentHistory = () => {
       case "pending":
         return <Clock className="w-5 h-5 text-yellow-500" />;
       case "failed":
-      case "refunded":
         return <XCircle className="w-5 h-5 text-red-500" />;
       default:
         return null;
@@ -72,31 +53,9 @@ const PaymentHistory = () => {
         return "প্রক্রিয়াধীন";
       case "failed":
         return "ব্যর্থ";
-      case "refunded":
-        return "ফেরত";
       default:
         return status;
     }
-  };
-
-  const getMethodName = (method: string) => {
-    const methods: Record<string, string> = {
-      'bkash': 'বিকাশ',
-      'bkash-merchant': 'বিকাশ মার্চেন্ট',
-      'nagad': 'নগদ',
-      'rocket': 'রকেট',
-      'manual': 'ম্যানুয়াল',
-    };
-    return methods[method] || method;
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('bn-BD', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
   };
 
   return (
@@ -132,17 +91,10 @@ const PaymentHistory = () => {
                         <CreditCard className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground">
-                          {payment.course?.title || `কোর্স #${payment.course_id}`}
-                        </h3>
+                        <h3 className="font-semibold text-foreground">{payment.course}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {getMethodName(payment.payment_method)} • {formatDate(payment.payment_date)}
+                          {payment.method} • {payment.date}
                         </p>
-                        {payment.transaction_id && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            TXN: {payment.transaction_id}
-                          </p>
-                        )}
                       </div>
                     </div>
                     <div className="flex items-center justify-between md:justify-end gap-4">
