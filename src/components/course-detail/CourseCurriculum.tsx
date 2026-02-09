@@ -13,8 +13,9 @@ interface CourseCurriculumProps {
 }
 
 const CourseCurriculum = ({ courseId, totalLessons, durationHours }: CourseCurriculumProps) => {
-  const { data: lessons, isLoading: lessonsLoading } = usePublicLessonsByCourse(courseId);
-  const { data: sections, isLoading: sectionsLoading } = usePublicSectionsByCourse(courseId);
+  const cid = String(courseId);
+  const { data: lessons, isLoading: lessonsLoading } = usePublicLessonsByCourse(cid);
+  const { data: sections, isLoading: sectionsLoading } = usePublicSectionsByCourse(cid);
   const [showAll, setShowAll] = useState(false);
 
   const isLoading = lessonsLoading || sectionsLoading;

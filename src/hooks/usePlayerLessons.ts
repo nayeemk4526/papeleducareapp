@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { lessonsApi, sectionsApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface PlayerLesson {
   id: string;
@@ -11,8 +11,8 @@ export interface PlayerLesson {
   video_url: string | null;
   video_duration_minutes: number | null;
   lesson_order: number;
-  is_free_preview: boolean;
-  is_published: boolean;
+  is_free_preview: boolean | null;
+  is_published: boolean | null;
   materials_url: string | null;
   created_at: string;
   updated_at: string;
@@ -24,67 +24,51 @@ export interface PlayerSection {
   title: string;
   description: string | null;
   section_order: number;
-  is_published: boolean;
+  is_published: boolean | null;
   lessons: PlayerLesson[];
 }
 
-// Hook for enrolled users to get full lesson data with video URLs
-export const useEnrolledLessons = (courseId: string | number) => {
-  const { user, isAdmin } = useAuth();
-  const numericCourseId = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
-
-  return useQuery({
-    queryKey: ["enrolled-lessons", numericCourseId, user?.id, isAdmin],
-    queryFn: async () => {
-      if (!user || !numericCourseId) return [];
-
-      // Fetch lessons from MySQL API
-      const response = await lessonsApi.getByCourse(numericCourseId);
-      
-      // Filter for published lessons and transform to expected format
-      const lessons = (response.data || [])
-        .filter((lesson: any) => lesson.is_published)
-        .map((lesson: any) => ({
-          ...lesson,
-          id: String(lesson.id),
-          course_id: String(lesson.course_id),
-          section_id: lesson.section_id ? String(lesson.section_id) : null,
-        }));
-      
-      return lessons as PlayerLesson[];
-    },
-    enabled: !!user && !!numericCourseId,
-  });
-};
-
-export const useEnrolledSections = (courseId: string | number) => {
+export const useEnrolledLessons = (courseId: string) => {
   const { user } = useAuth();
-  const numericCourseId = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
 
   return useQuery({
-    queryKey: ["enrolled-sections", numericCourseId, user?.id],
+    queryKey: ["enrolled-lessons", courseId, user?.id],
     queryFn: async () => {
-      if (!user || !numericCourseId) return [];
-
-      const response = await sectionsApi.getByCourse(numericCourseId);
-      
-      // Filter for published sections and transform IDs to strings
-      const sections = (response.data || [])
-        .filter((section: any) => section.is_published)
-        .map((section: any) => ({
-          ...section,
-          id: String(section.id),
-          course_id: String(section.course_id),
-        }));
-      
-      return sections;
+      if (!user || !courseId) return [];
+      const { data, error } = await supabase
+        .from("lessons")
+        .select("*")
+        .eq("course_id", courseId)
+        .eq("is_published", true)
+        .order("lesson_order");
+      if (error) throw error;
+      return data as PlayerLesson[];
     },
-    enabled: !!user && !!numericCourseId,
+    enabled: !!user && !!courseId,
   });
 };
 
-// Combined hook for structured curriculum
-export const useEnrolledCurriculum = (courseId: string | number) => {
+export const useEnrolledSections = (courseId: string) => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["enrolled-sections", courseId, user?.id],
+    queryFn: async () => {
+      if (!user || !courseId) return [];
+      const { data, error } = await supabase
+        .from("sections")
+        .select("*")
+        .eq("course_id", courseId)
+        .eq("is_published", true)
+        .order("section_order");
+      if (error) throw error;
+      return (data || []).map(s => ({ ...s, lessons: [] })) as PlayerSection[];
+    },
+    enabled: !!user && !!courseId,
+  });
+};
+
+export const useEnrolledCurriculum = (courseId: string) => {
   const { data: sections = [], isLoading: sectionsLoading } = useEnrolledSections(courseId);
   const { data: lessons = [], isLoading: lessonsLoading } = useEnrolledLessons(courseId);
 
@@ -93,7 +77,6 @@ export const useEnrolledCurriculum = (courseId: string | number) => {
     lessons: lessons.filter((lesson) => lesson.section_id === section.id),
   }));
 
-  // Add lessons without section
   const orphanLessons = lessons.filter((lesson) => !lesson.section_id);
 
   return {

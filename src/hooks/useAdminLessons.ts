@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { lessonsApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export interface LessonFormData {
-  course_id: number;
-  section_id?: number;
+  course_id: string;
+  section_id?: string;
   title: string;
   description?: string;
   video_url?: string;
@@ -15,12 +15,13 @@ export interface LessonFormData {
   materials_url?: string;
 }
 
-export const useAdminLessons = (courseId?: string | number) => {
+export const useAdminLessons = (courseId?: string) => {
   return useQuery({
     queryKey: ["admin-lessons", courseId],
     queryFn: async () => {
-      const result = await lessonsApi.getByCourse(Number(courseId));
-      return result.data;
+      const { data, error } = await supabase.from("lessons").select("*").eq("course_id", courseId!).order("lesson_order");
+      if (error) throw error;
+      return data;
     },
     enabled: !!courseId,
   });
@@ -29,50 +30,46 @@ export const useAdminLessons = (courseId?: string | number) => {
 export const useCreateLesson = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   return useMutation({
     mutationFn: async (lesson: LessonFormData) => {
-      const result = await lessonsApi.create(lesson);
-      return result.data;
+      const { data, error } = await supabase.from("lessons").insert(lesson).select().single();
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-lessons", data.course_id] });
       queryClient.invalidateQueries({ queryKey: ["lessons"] });
       toast({ title: "সফল!", description: "লেসন সফলভাবে তৈরি হয়েছে" });
     },
-    onError: (error: Error) => {
-      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
-    },
+    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
   });
 };
 
 export const useUpdateLesson = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   return useMutation({
-    mutationFn: async ({ id, ...lesson }: LessonFormData & { id: number }) => {
-      const result = await lessonsApi.update(id, lesson);
-      return result.data;
+    mutationFn: async ({ id, ...lesson }: LessonFormData & { id: string }) => {
+      const { data, error } = await supabase.from("lessons").update(lesson).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-lessons", data.course_id] });
       queryClient.invalidateQueries({ queryKey: ["lessons"] });
       toast({ title: "সফল!", description: "লেসন সফলভাবে আপডেট হয়েছে" });
     },
-    onError: (error: Error) => {
-      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
-    },
+    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
   });
 };
 
 export const useDeleteLesson = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   return useMutation({
-    mutationFn: async ({ id, courseId }: { id: number; courseId: string | number }) => {
-      await lessonsApi.delete(id);
+    mutationFn: async ({ id, courseId }: { id: string; courseId: string }) => {
+      const { error } = await supabase.from("lessons").delete().eq("id", id);
+      if (error) throw error;
       return courseId;
     },
     onSuccess: (courseId) => {
@@ -80,8 +77,6 @@ export const useDeleteLesson = () => {
       queryClient.invalidateQueries({ queryKey: ["lessons"] });
       toast({ title: "সফল!", description: "লেসন সফলভাবে মুছে ফেলা হয়েছে" });
     },
-    onError: (error: Error) => {
-      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
-    },
+    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
   });
 };

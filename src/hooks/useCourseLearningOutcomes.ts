@@ -1,19 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { learningOutcomesApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export interface LearningOutcomeFormData {
-  course_id: number;
+  course_id: string;
   content: string;
   display_order: number;
 }
 
-export const useCourseLearningOutcomes = (courseId?: string | number) => {
+export const useCourseLearningOutcomes = (courseId?: string) => {
   return useQuery({
     queryKey: ["course-learning-outcomes", courseId],
     queryFn: async () => {
-      const result = await learningOutcomesApi.getByCourse(Number(courseId));
-      return result.data;
+      const { data, error } = await supabase.from("course_learning_outcomes").select("*").eq("course_id", courseId!).order("display_order");
+      if (error) throw error;
+      return data;
     },
     enabled: !!courseId,
   });
@@ -22,56 +23,50 @@ export const useCourseLearningOutcomes = (courseId?: string | number) => {
 export const useCreateLearningOutcome = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   return useMutation({
     mutationFn: async (outcome: LearningOutcomeFormData) => {
-      const result = await learningOutcomesApi.create(outcome);
-      return result.data;
+      const { data, error } = await supabase.from("course_learning_outcomes").insert(outcome).select().single();
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["course-learning-outcomes", data.course_id] });
       toast({ title: "সফল!", description: "শিখার বিষয় সফলভাবে যোগ হয়েছে" });
     },
-    onError: (error: Error) => {
-      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
-    },
+    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
   });
 };
 
 export const useUpdateLearningOutcome = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   return useMutation({
-    mutationFn: async ({ id, ...outcome }: LearningOutcomeFormData & { id: number }) => {
-      const result = await learningOutcomesApi.update(id, outcome);
-      return result.data;
+    mutationFn: async ({ id, ...outcome }: LearningOutcomeFormData & { id: string }) => {
+      const { data, error } = await supabase.from("course_learning_outcomes").update(outcome).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["course-learning-outcomes", data.course_id] });
       toast({ title: "সফল!", description: "শিখার বিষয় সফলভাবে আপডেট হয়েছে" });
     },
-    onError: (error: Error) => {
-      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
-    },
+    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
   });
 };
 
 export const useDeleteLearningOutcome = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   return useMutation({
-    mutationFn: async ({ id, courseId }: { id: number; courseId: string | number }) => {
-      await learningOutcomesApi.delete(id);
+    mutationFn: async ({ id, courseId }: { id: string; courseId: string }) => {
+      const { error } = await supabase.from("course_learning_outcomes").delete().eq("id", id);
+      if (error) throw error;
       return courseId;
     },
     onSuccess: (courseId) => {
       queryClient.invalidateQueries({ queryKey: ["course-learning-outcomes", courseId] });
       toast({ title: "সফল!", description: "শিখার বিষয় সফলভাবে মুছে ফেলা হয়েছে" });
     },
-    onError: (error: Error) => {
-      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
-    },
+    onError: (error: Error) => { toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" }); },
   });
 };

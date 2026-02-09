@@ -25,8 +25,8 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
   const { toast } = useToast();
 
   const [formData, setFormData] = useState<LessonFormData>({
-    course_id: Number(courseId),
-    section_id: sectionId ? Number(sectionId) : undefined,
+    course_id: String(courseId),
+    section_id: sectionId ? String(sectionId) : undefined,
     title: "",
     description: "",
     video_url: "",
@@ -43,8 +43,8 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
   useEffect(() => {
     if (lesson) {
       setFormData({
-        course_id: Number(courseId),
-        section_id: lesson.section_id ? Number(lesson.section_id) : (sectionId ? Number(sectionId) : undefined),
+        course_id: String(courseId),
+        section_id: lesson.section_id ? String(lesson.section_id) : (sectionId ? String(sectionId) : undefined),
         title: lesson.title || "",
         description: lesson.description || "",
         video_url: lesson.video_url || "",
@@ -57,8 +57,8 @@ const LessonDialog = ({ open, onOpenChange, courseId, sectionId, lesson, nextOrd
       setDurationFetched(false);
     } else {
       setFormData({
-        course_id: Number(courseId),
-        section_id: sectionId ? Number(sectionId) : undefined,
+        course_id: String(courseId),
+        section_id: sectionId ? String(sectionId) : undefined,
         title: "",
         description: "",
         video_url: "",

@@ -21,7 +21,7 @@ const SectionDialog = ({ open, onOpenChange, courseId, section, nextOrder = 1 }:
   const updateSection = useUpdateSection();
 
   const [formData, setFormData] = useState<SectionFormData>({
-    course_id: Number(courseId),
+    course_id: String(courseId),
     title: "",
     description: "",
     section_order: nextOrder,
@@ -31,7 +31,7 @@ const SectionDialog = ({ open, onOpenChange, courseId, section, nextOrder = 1 }:
   useEffect(() => {
     if (section) {
       setFormData({
-        course_id: Number(courseId),
+        course_id: String(courseId),
         title: section.title || "",
         description: section.description || "",
         section_order: section.section_order || nextOrder,
@@ -39,7 +39,7 @@ const SectionDialog = ({ open, onOpenChange, courseId, section, nextOrder = 1 }:
       });
     } else {
       setFormData({
-        course_id: Number(courseId),
+        course_id: String(courseId),
         title: "",
         description: "",
         section_order: nextOrder,

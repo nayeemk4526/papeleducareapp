@@ -9,7 +9,7 @@ interface CourseReviewsProps {
 }
 
 const CourseReviews = ({ courseId }: CourseReviewsProps) => {
-  const { data: reviews, isLoading } = useTestimonialsByCourse(courseId);
+  const { data: reviews, isLoading } = useTestimonialsByCourse(String(courseId));
 
   if (isLoading) {
     return (

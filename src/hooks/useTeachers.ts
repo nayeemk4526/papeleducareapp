@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { teachersApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Teacher {
-  id: number;
-  user_id: number | null;
+  id: string;
+  user_id: string | null;
   name: string;
   title: string | null;
   subtitle: string | null;
@@ -12,7 +12,7 @@ export interface Teacher {
   email: string | null;
   phone: string | null;
   specializations: string[] | null;
-  is_active: boolean;
+  is_active: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -21,21 +21,28 @@ export const useTeachers = () => {
   return useQuery({
     queryKey: ["teachers"],
     queryFn: async () => {
-      const response = await teachersApi.list();
-      return response.data as Teacher[];
+      const { data, error } = await supabase
+        .from("teachers")
+        .select("*")
+        .eq("is_active", true);
+      if (error) throw error;
+      return data as Teacher[];
     },
   });
 };
 
-export const useTeacherById = (id: string | number) => {
-  const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-  
+export const useTeacherById = (id: string) => {
   return useQuery({
-    queryKey: ["teacher", numericId],
+    queryKey: ["teacher", id],
     queryFn: async () => {
-      const response = await teachersApi.getById(numericId);
-      return response as Teacher | null;
+      const { data, error } = await supabase
+        .from("teachers")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      return data as Teacher;
     },
-    enabled: !!numericId,
+    enabled: !!id,
   });
 };
