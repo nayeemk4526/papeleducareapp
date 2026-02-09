@@ -1,15 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { categoriesApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Category {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   description: string | null;
   icon_name: string | null;
   image_url: string | null;
-  is_published: boolean;
-  display_order: number;
+  is_published: boolean | null;
+  display_order: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -18,8 +18,13 @@ export const useCategories = () => {
   return useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
-      const response = await categoriesApi.list();
-      return response.data as Category[];
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data as Category[];
     },
   });
 };
@@ -28,8 +33,13 @@ export const useCategoryBySlug = (slug: string) => {
   return useQuery({
     queryKey: ["category", slug],
     queryFn: async () => {
-      const response = await categoriesApi.getBySlug(slug);
-      return response as Category | null;
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("slug", slug)
+        .single();
+      if (error) throw error;
+      return data as Category;
     },
     enabled: !!slug,
   });

@@ -22,7 +22,7 @@ const CouponDialog = ({ open, onOpenChange, coupon }: CouponDialogProps) => {
 
   const [formData, setFormData] = useState<CouponFormData>({
     code: coupon?.code || "",
-    discount_type: coupon?.discount_type || "percentage",
+    discount_type: (coupon?.discount_type as "percentage" | "fixed") || "percentage",
     discount_value: coupon?.discount_value || 0,
     max_uses: coupon?.max_uses || null,
     min_purchase_amount: coupon?.min_purchase_amount || 0,

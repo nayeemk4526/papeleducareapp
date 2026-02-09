@@ -1,4 +1,4 @@
-import { authApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
 // Validation schemas
@@ -14,47 +14,57 @@ export const signUpSchema = z.object({
 });
 
 export const signInSchema = z.object({
-  email: z.string().min(1, "ইমেইল বা ফোন নম্বর দিন"),
+  email: z.string().min(1, "ইমেইল দিন"),
   password: z.string().min(1, "পাসওয়ার্ড দিন"),
 });
 
 export type SignUpFormData = z.infer<typeof signUpSchema>;
 export type SignInFormData = z.infer<typeof signInSchema>;
 
-// Sign in function (for MySQL)
+// Sign in function
 export const signIn = async (data: SignInFormData) => {
-  const result = await authApi.signIn(data.email, data.password);
+  const { error } = await supabase.auth.signInWithPassword({
+    email: data.email,
+    password: data.password,
+  });
   
-  if (!result.success) {
-    throw new Error("ইমেইল/ফোন বা পাসওয়ার্ড ভুল");
+  if (error) {
+    throw new Error("ইমেইল বা পাসওয়ার্ড ভুল");
   }
-
-  return result;
 };
 
 // Sign out function
 export const signOut = async () => {
-  await authApi.signOut();
+  await supabase.auth.signOut();
 };
 
 // Check if user is admin
-export const checkIsAdmin = async (userId: number): Promise<boolean> => {
-  const roles = authApi.getStoredRoles();
-  return roles.includes('admin');
+export const checkIsAdmin = async (userId: string): Promise<boolean> => {
+  const { data } = await supabase.rpc('has_role', { _user_id: userId, _role: 'admin' });
+  return !!data;
 };
 
 // Check if user is teacher
-export const checkIsTeacher = async (userId: number): Promise<boolean> => {
-  const roles = authApi.getStoredRoles();
-  return roles.includes('teacher');
+export const checkIsTeacher = async (userId: string): Promise<boolean> => {
+  const { data } = await supabase.rpc('has_role', { _user_id: userId, _role: 'teacher' });
+  return !!data;
 };
 
 // Get user profile
-export const getUserProfile = async (userId: number) => {
-  return authApi.getStoredProfile();
+export const getUserProfile = async (userId: string) => {
+  const { data } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+  return data;
 };
 
 // Get user roles
-export const getUserRoles = async (userId: number) => {
-  return authApi.getStoredRoles();
+export const getUserRoles = async (userId: string) => {
+  const { data } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId);
+  return data?.map(r => r.role) || [];
 };

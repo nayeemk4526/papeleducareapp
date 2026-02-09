@@ -8,7 +8,7 @@ interface WhatYouLearnProps {
 }
 
 const WhatYouLearn = ({ courseId }: WhatYouLearnProps) => {
-  const { data: outcomes, isLoading } = useCourseLearningOutcomes(courseId);
+  const { data: outcomes, isLoading } = useCourseLearningOutcomes(String(courseId));
 
   if (isLoading) {
     return (

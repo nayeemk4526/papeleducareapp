@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { coursesApi, categoriesApi } from "@/lib/mysql-api";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Course {
-  id: number;
+  id: string;
   title: string;
   slug: string;
   description: string | null;
@@ -12,52 +12,37 @@ export interface Course {
   how_to_enroll_video_url: string | null;
   price: number;
   discount_price: number | null;
-  category_id: number | null;
-  instructor_id: number | null;
+  category_id: string | null;
+  instructor_id: string | null;
   duration_hours: number | null;
-  total_lessons: number;
-  total_students: number;
-  is_published: boolean;
-  is_featured: boolean;
+  total_lessons: number | null;
+  total_students: number | null;
+  is_published: boolean | null;
+  is_featured: boolean | null;
   created_at: string;
   updated_at: string;
-  category?: {
-    id: number;
-    name: string;
-    slug: string;
-  } | null;
-  instructor?: {
-    id: number;
-    name: string;
-    title: string | null;
-    subtitle?: string | null;
-    bio?: string | null;
-    avatar_url: string | null;
-  } | null;
+  category?: { id: string; name: string; slug: string } | null;
+  instructor?: { id: string; name: string; title: string | null; subtitle?: string | null; bio?: string | null; avatar_url: string | null } | null;
 }
 
-export const useCourses = (options?: { categoryId?: string | number; featured?: boolean; limit?: number }) => {
+export const useCourses = (options?: { categoryId?: string; featured?: boolean; limit?: number }) => {
   return useQuery({
     queryKey: ["courses", options],
     queryFn: async () => {
-      const params: any = {};
-      
-      if (options?.categoryId) {
-        params.category_id = typeof options.categoryId === 'string' 
-          ? parseInt(options.categoryId, 10) 
-          : options.categoryId;
-      }
-      
-      if (options?.featured) {
-        params.featured = true;
-      }
-      
-      if (options?.limit) {
-        params.limit = options.limit;
-      }
+      let query = supabase
+        .from("courses")
+        .select("*, category:categories(id, name, slug), instructor:teachers(id, name, title, subtitle, bio, avatar_url)")
+        .eq("is_published", true);
 
-      const response = await coursesApi.list(params);
-      return response.data as Course[];
+      if (options?.categoryId) query = query.eq("category_id", options.categoryId);
+      if (options?.featured) query = query.eq("is_featured", true);
+      if (options?.limit) query = query.limit(options.limit);
+
+      query = query.order("created_at", { ascending: false });
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as Course[];
     },
   });
 };
@@ -66,23 +51,31 @@ export const useCourseBySlug = (slug: string) => {
   return useQuery({
     queryKey: ["course", slug],
     queryFn: async () => {
-      const response = await coursesApi.getBySlug(slug);
-      return response as Course | null;
+      const { data, error } = await supabase
+        .from("courses")
+        .select("*, category:categories(id, name, slug), instructor:teachers(id, name, title, subtitle, bio, avatar_url)")
+        .eq("slug", slug)
+        .single();
+      if (error) throw error;
+      return data as Course;
     },
     enabled: !!slug,
   });
 };
 
-export const useCourseById = (id: string | number) => {
-  const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-  
+export const useCourseById = (id: string) => {
   return useQuery({
-    queryKey: ["course", "id", numericId],
+    queryKey: ["course", "id", id],
     queryFn: async () => {
-      const response = await coursesApi.getById(numericId);
-      return response as Course | null;
+      const { data, error } = await supabase
+        .from("courses")
+        .select("*, category:categories(id, name, slug), instructor:teachers(id, name, title, subtitle, bio, avatar_url)")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      return data as Course;
     },
-    enabled: !!numericId,
+    enabled: !!id,
   });
 };
 
@@ -90,11 +83,15 @@ export const useCoursesByCategorySlug = (categorySlug: string) => {
   return useQuery({
     queryKey: ["courses", "category", categorySlug],
     queryFn: async () => {
-      const category = await categoriesApi.getBySlug(categorySlug);
+      const { data: category } = await supabase.from("categories").select("id").eq("slug", categorySlug).single();
       if (!category) return [];
-
-      const response = await coursesApi.list({ category_id: category.id });
-      return response.data as Course[];
+      const { data, error } = await supabase
+        .from("courses")
+        .select("*, category:categories(id, name, slug), instructor:teachers(id, name, title, subtitle, bio, avatar_url)")
+        .eq("category_id", category.id)
+        .eq("is_published", true);
+      if (error) throw error;
+      return (data || []) as Course[];
     },
     enabled: !!categorySlug,
   });
@@ -104,22 +101,26 @@ export const useCategoryBySlug = (slug: string) => {
   return useQuery({
     queryKey: ["category", slug],
     queryFn: async () => {
-      const response = await categoriesApi.getBySlug(slug);
-      return response;
+      const { data, error } = await supabase.from("categories").select("*").eq("slug", slug).single();
+      if (error) throw error;
+      return data;
     },
     enabled: !!slug,
   });
 };
 
-export const useCoursesByCategory = (categoryId: string | number) => {
-  const numericId = typeof categoryId === 'string' ? parseInt(categoryId, 10) : categoryId;
-  
+export const useCoursesByCategory = (categoryId: string) => {
   return useQuery({
-    queryKey: ["courses", "categoryId", numericId],
+    queryKey: ["courses", "categoryId", categoryId],
     queryFn: async () => {
-      const response = await coursesApi.list({ category_id: numericId });
-      return response.data as Course[];
+      const { data, error } = await supabase
+        .from("courses")
+        .select("*, category:categories(id, name, slug), instructor:teachers(id, name, title, subtitle, bio, avatar_url)")
+        .eq("category_id", categoryId)
+        .eq("is_published", true);
+      if (error) throw error;
+      return (data || []) as Course[];
     },
-    enabled: !!numericId,
+    enabled: !!categoryId,
   });
 };

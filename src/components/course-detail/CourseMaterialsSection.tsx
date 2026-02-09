@@ -19,8 +19,9 @@ const getFileIcon = (fileType: string | null) => {
 
 const CourseMaterialsSection = ({ courseId }: CourseMaterialsSectionProps) => {
   const { user } = useAuth();
-  const { data: isEnrolled } = useIsEnrolled(courseId);
-  const { data: materials, isLoading } = useCourseMaterials(courseId);
+  const cid = String(courseId);
+  const { data: isEnrolled } = useIsEnrolled(cid);
+  const { data: materials, isLoading } = useCourseMaterials(cid);
 
   if (isLoading) {
     return (
