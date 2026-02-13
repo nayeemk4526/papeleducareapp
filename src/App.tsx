@@ -17,6 +17,8 @@ import DiplomaDynamic from "./pages/DiplomaDynamic";
 import SemesterPage from "./pages/SemesterPage";
 import CategoryPage from "./pages/CategoryPage";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import RefundPolicy from "./pages/RefundPolicy";
 
 // Dashboard Pages
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
@@ -65,6 +67,8 @@ const App = () => (
                 <Route path="/diploma-dynamic" element={<DiplomaDynamic />} />
                 <Route path="/semester/:id" element={<SemesterPage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/refund" element={<RefundPolicy />} />
 
                 {/* Student Dashboard Routes */}
                 <Route path="/dashboard" element={<StudentDashboard />} />
