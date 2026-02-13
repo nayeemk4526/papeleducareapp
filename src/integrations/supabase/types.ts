@@ -606,6 +606,33 @@ export type Database = {
           },
         ]
       }
+      phone_verifications: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          is_verified: boolean | null
+          otp_code: string
+          phone: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_verified?: boolean | null
+          otp_code: string
+          phone: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_verified?: boolean | null
+          otp_code?: string
+          phone?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -614,6 +641,7 @@ export type Database = {
           full_name: string
           id: string
           phone: string | null
+          phone_verified: boolean | null
           updated_at: string
           user_id: string
         }
@@ -624,6 +652,7 @@ export type Database = {
           full_name: string
           id?: string
           phone?: string | null
+          phone_verified?: boolean | null
           updated_at?: string
           user_id: string
         }
@@ -634,6 +663,7 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
+          phone_verified?: boolean | null
           updated_at?: string
           user_id?: string
         }
@@ -940,6 +970,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_otps: { Args: never; Returns: undefined }
       get_profile_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
