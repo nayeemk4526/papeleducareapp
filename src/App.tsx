@@ -19,6 +19,7 @@ import CategoryPage from "./pages/CategoryPage";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import RefundPolicy from "./pages/RefundPolicy";
+import TermsConditions from "./pages/TermsConditions";
 
 // Dashboard Pages
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="/category/:slug" element={<CategoryPage />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/refund" element={<RefundPolicy />} />
+                <Route path="/terms" element={<TermsConditions />} />
 
                 {/* Student Dashboard Routes */}
                 <Route path="/dashboard" element={<StudentDashboard />} />
