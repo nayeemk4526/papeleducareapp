@@ -74,17 +74,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     const message = `আপনার পাপেল এডু-কেয়ার ভেরিফিকেশন কোড: ${otpCode}। এই কোডটি ৫ মিনিট পর্যন্ত কার্যকর।`;
 
-    const smsResponse = await fetch("https://api.mfrhost.com/sms/send", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        sender_id: senderId,
-        phone: formattedPhone,
-        message,
-      }),
+    const smsUrl = `https://api.mimsms.com/api/SmsSending/Send?ApiKey=${apiKey}&ClientId=${senderId}&SenderId=${senderId}&Message=${encodeURIComponent(message)}&MobileNumbers=${formattedPhone}&Is_Unicode=true`;
+    
+    const smsResponse = await fetch(smsUrl, {
+      method: "GET",
     });
 
     const smsResult = await smsResponse.json();
