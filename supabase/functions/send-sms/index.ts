@@ -45,18 +45,32 @@ const handler = async (req: Request): Promise<Response> => {
       formattedPhone = "01" + formattedPhone;
     }
 
-    // MiM Digital Marketing Solution SMS API
-    // Adjust the API endpoint and parameters based on their actual API documentation
-    const smsApiUrl = `https://api.mimsms.com/api/SmsSending/Send?ApiKey=${apiKey}&ClientId=${senderId}&SenderId=${senderId}&Message=${encodeURIComponent(message)}&MobileNumbers=${formattedPhone}&Is_Unicode=true`;
-    
-    const response = await fetch(smsApiUrl, {
-      method: "GET",
+    // Format phone to international format (8801XXXXXXXXX)
+    let intlPhone = formattedPhone;
+    if (intlPhone.startsWith("01")) {
+      intlPhone = "88" + intlPhone;
+    }
+
+    const smsBody = {
+      UserName: senderId,
+      Apikey: apiKey,
+      MobileNumber: intlPhone,
+      SenderName: senderId,
+      TransactionType: "T",
+      Message: message,
+      Is_Unicode: true,
+    };
+
+    const response = await fetch("https://api.mimsms.com/api/SmsSending/SMS", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(smsBody),
     });
 
-    const result = await response.json();
+    const result = await response.text();
 
     if (!response.ok) {
-      console.error("SMS API error:", result);
+      console.error("SMS API error:", response.status, result);
       return new Response(
         JSON.stringify({ error: "SMS পাঠাতে সমস্যা হয়েছে", details: result }),
         { status: response.status, headers: { "Content-Type": "application/json", ...corsHeaders } }
