@@ -47,19 +47,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     // MiM Digital Marketing Solution SMS API
     // Adjust the API endpoint and parameters based on their actual API documentation
-    const smsApiUrl = `https://api.mfrhost.com/sms/send`;
+    const smsApiUrl = `https://api.mimsms.com/api/SmsSending/Send?ApiKey=${apiKey}&ClientId=${senderId}&SenderId=${senderId}&Message=${encodeURIComponent(message)}&MobileNumbers=${formattedPhone}&Is_Unicode=true`;
     
     const response = await fetch(smsApiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        sender_id: senderId,
-        phone: formattedPhone,
-        message: message,
-      }),
+      method: "GET",
     });
 
     const result = await response.json();
