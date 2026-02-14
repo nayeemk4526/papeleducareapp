@@ -74,17 +74,35 @@ const handler = async (req: Request): Promise<Response> => {
 
     const message = `আপনার পাপেল এডু-কেয়ার ভেরিফিকেশন কোড: ${otpCode}। এই কোডটি ৫ মিনিট পর্যন্ত কার্যকর।`;
 
-    const smsUrl = `https://api.mimsms.com/api/SmsSending/Send?ApiKey=${apiKey}&ClientId=${senderId}&SenderId=${senderId}&Message=${encodeURIComponent(message)}&MobileNumbers=${formattedPhone}&Is_Unicode=true`;
-    
-    const smsResponse = await fetch(smsUrl, {
-      method: "GET",
+    // Format phone to international format (8801XXXXXXXXX)
+    let intlPhone = formattedPhone;
+    if (intlPhone.startsWith("01")) {
+      intlPhone = "88" + intlPhone;
+    }
+
+    const smsBody = {
+      UserName: senderId,
+      Apikey: apiKey,
+      MobileNumber: intlPhone,
+      SenderName: senderId,
+      TransactionType: "T",
+      Message: message,
+      Is_Unicode: true,
+    };
+
+    console.log("Sending SMS with body:", JSON.stringify(smsBody));
+
+    const smsResponse = await fetch("https://api.mimsms.com/api/SmsSending/SMS", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(smsBody),
     });
 
-    const smsResult = await smsResponse.json();
+    const smsResult = await smsResponse.text();
+    console.log("SMS API response:", smsResult);
 
     if (!smsResponse.ok) {
-      console.error("SMS API error:", smsResult);
-      // Still return success since OTP is stored - user can retry
+      console.error("SMS API error:", smsResponse.status, smsResult);
     }
 
     console.log("OTP sent to:", formattedPhone);
