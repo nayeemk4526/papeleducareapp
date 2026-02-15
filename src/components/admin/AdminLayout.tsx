@@ -15,6 +15,7 @@ const menuItems = [
   { label: "শিক্ষক", href: "/admin/teachers", icon: GraduationCap },
   { label: "ইউজার", href: "/admin/users", icon: Users },
   { label: "পেমেন্ট", href: "/admin/payments", icon: CreditCard },
+  { label: "পেমেন্ট সেটিংস", href: "/admin/payment-settings", icon: Settings },
   { label: "কুপন কোড", href: "/admin/coupons", icon: Ticket },
   { label: "টেস্টিমোনিয়াল", href: "/admin/testimonials", icon: FileText },
 ];

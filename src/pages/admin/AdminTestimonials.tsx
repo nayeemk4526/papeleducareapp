@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Trash2, FileText, Star, Check, X } from "lucide-react";
+import { Search, Trash2, FileText, Star, Check, X, Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import AdminLayout from "@/components/admin/AdminLayout";
+import TestimonialDialog from "@/components/admin/TestimonialDialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +27,8 @@ const AdminTestimonials = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [testimonialToDelete, setTestimonialToDelete] = useState<string | null>(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [editingTestimonial, setEditingTestimonial] = useState<any>(null);
 
   const { data: testimonials, isLoading } = useQuery({
     queryKey: ["admin-testimonials"],
@@ -117,6 +120,10 @@ const AdminTestimonials = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button onClick={() => { setEditingTestimonial(null); setShowDialog(true); }}>
+          <Plus className="w-4 h-4 mr-2" />
+          নতুন টেস্টিমোনিয়াল যোগ করুন
+        </Button>
       </div>
 
       {/* Testimonials List */}
@@ -184,6 +191,13 @@ const AdminTestimonials = () => {
                   <Button
                     size="icon"
                     variant="ghost"
+                    onClick={() => { setEditingTestimonial(testimonial); setShowDialog(true); }}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
                     className="text-destructive"
                     onClick={() => handleDelete(testimonial.id)}
                   >
@@ -221,6 +235,16 @@ const AdminTestimonials = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add/Edit Dialog */}
+      <TestimonialDialog
+        open={showDialog}
+        onOpenChange={(open) => {
+          setShowDialog(open);
+          if (!open) setEditingTestimonial(null);
+        }}
+        testimonial={editingTestimonial}
+      />
     </AdminLayout>
   );
 };

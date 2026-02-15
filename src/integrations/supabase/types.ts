@@ -537,6 +537,48 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_settings: {
+        Row: {
+          account_number: string | null
+          color: string | null
+          created_at: string
+          display_order: number | null
+          id: string
+          instructions: string | null
+          is_enabled: boolean
+          is_merchant: boolean
+          method_key: string
+          method_name: string
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          color?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          instructions?: string | null
+          is_enabled?: boolean
+          is_merchant?: boolean
+          method_key: string
+          method_name: string
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          color?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          instructions?: string | null
+          is_enabled?: boolean
+          is_merchant?: boolean
+          method_key?: string
+          method_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number

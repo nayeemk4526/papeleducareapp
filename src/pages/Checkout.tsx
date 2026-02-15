@@ -12,15 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useCourseById } from "@/hooks/useCourses";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
-const paymentMethods = [
-  { id: "bkash-merchant", name: "বিকাশ মার্চেন্ট", color: "#E2136E", number: null, isMerchant: true },
-  { id: "bkash", name: "বিকাশ", color: "#E2136E", number: "01XXXXXXXXX", isMerchant: false },
-  { id: "nagad", name: "নগদ", color: "#F6921E", number: "01XXXXXXXXX", isMerchant: false },
-  { id: "rocket", name: "রকেট", color: "#8C3494", number: "01XXXXXXXXX", isMerchant: false },
-];
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -31,10 +25,37 @@ const Checkout = () => {
   
   const { data: course, isLoading } = useCourseById(courseId || "");
   
-  const [selectedMethod, setSelectedMethod] = useState("bkash-merchant");
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ["payment-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payment_settings")
+        .select("*")
+        .eq("is_enabled", true)
+        .order("display_order");
+      if (error) throw error;
+      return data.map(m => ({
+        id: m.method_key,
+        name: m.method_name,
+        color: m.color || "#6366F1",
+        number: m.account_number,
+        isMerchant: m.is_merchant,
+        instructions: m.instructions,
+      }));
+    },
+  });
+
+  const [selectedMethod, setSelectedMethod] = useState("");
   const [transactionId, setTransactionId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Set default selected method when payment methods load
+  useEffect(() => {
+    if (paymentMethods.length > 0 && !selectedMethod) {
+      setSelectedMethod(paymentMethods[0].id);
+    }
+  }, [paymentMethods, selectedMethod]);
 
   // Handle payment callback from bKash
   useEffect(() => {
@@ -407,10 +428,9 @@ const Checkout = () => {
                           <div className="flex items-start gap-2">
                             <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
                             <div>
-                              <p className="font-medium">বিকাশ মার্চেন্ট পেমেন্ট:</p>
+                              <p className="font-medium">{selectedPayment?.name} পেমেন্ট:</p>
                               <p className="text-sm text-muted-foreground mt-2">
-                                "পেমেন্ট করুন" বাটনে ক্লিক করলে আপনাকে বিকাশ মার্চেন্ট পেমেন্ট পেজে নিয়ে যাওয়া হবে।
-                                সেখানে পেমেন্ট সম্পন্ন করলে স্বয়ংক্রিয়ভাবে আপনার কোর্সে এনরোলমেন্ট হয়ে যাবে।
+                                {selectedPayment?.instructions || '"পেমেন্ট করুন" বাটনে ক্লিক করলে আপনাকে পেমেন্ট পেজে নিয়ে যাওয়া হবে। সেখানে পেমেন্ট সম্পন্ন করলে স্বয়ংক্রিয়ভাবে আপনার কোর্সে এনরোলমেন্ট হয়ে যাবে।'}
                               </p>
                             </div>
                           </div>
