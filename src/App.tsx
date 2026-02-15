@@ -38,6 +38,7 @@ import AdminCategories from "./pages/admin/AdminCategories";
 import AdminTeachers from "./pages/admin/AdminTeachers";
 import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminTestimonials from "./pages/admin/AdminTestimonials";
+import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
 
 // Course Pages
 import CourseDetail from "./pages/CourseDetail";
@@ -89,6 +90,7 @@ const App = () => (
                 <Route path="/admin/teachers" element={<AdminTeachers />} />
                 <Route path="/admin/coupons" element={<AdminCoupons />} />
                 <Route path="/admin/testimonials" element={<AdminTestimonials />} />
+                <Route path="/admin/payment-settings" element={<AdminPaymentSettings />} />
 
                 {/* Catch-all */}
                 <Route path="*" element={<NotFound />} />
