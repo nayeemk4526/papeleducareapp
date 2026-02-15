@@ -57,8 +57,9 @@ const handler = async (req: Request): Promise<Response> => {
     // Send SMS
     const apiKey = Deno.env.get("SMS_API_KEY");
     const senderId = Deno.env.get("SMS_SENDER_ID");
+    const smsUsername = Deno.env.get("SMS_USERNAME");
 
-    if (!apiKey || !senderId) {
+    if (!apiKey || !senderId || !smsUsername) {
       console.error("SMS API credentials not configured");
       return new Response(
         JSON.stringify({ error: "SMS সার্ভিস কনফিগার করা হয়নি" }),
@@ -81,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const smsBody = {
-      UserName: senderId,
+      UserName: smsUsername,
       Apikey: apiKey,
       MobileNumber: intlPhone,
       SenderName: senderId,
