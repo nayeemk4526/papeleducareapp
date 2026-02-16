@@ -594,7 +594,7 @@ export type Database = {
           status: Database["public"]["Enums"]["payment_status"]
           transaction_id: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           verified_at: string | null
         }
         Insert: {
@@ -611,7 +611,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["payment_status"]
           transaction_id?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           verified_at?: string | null
         }
         Update: {
@@ -628,7 +628,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["payment_status"]
           transaction_id?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           verified_at?: string | null
         }
         Relationships: [

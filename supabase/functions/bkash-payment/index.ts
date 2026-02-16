@@ -8,45 +8,48 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    // Check for auth - optional for guest checkout
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      console.error("No authorization header provided");
-      return new Response(
-        JSON.stringify({ success: false, error: "লগইন প্রয়োজন" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    let userId: string | null = null;
 
-    const supabase = createClient(
+    const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Extract token and verify user
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !user) {
-      console.error("User verification failed:", userError);
-      return new Response(
-        JSON.stringify({ success: false, error: "অনুগ্রহ করে লগইন করুন" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    if (authHeader?.startsWith("Bearer ")) {
+      const supabaseAuth = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
       );
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user } } = await supabaseAuth.auth.getUser(token);
+      if (user) {
+        userId = user.id;
+      }
     }
 
     const { course_id, amount, phone_number, billing_info } = await req.json();
-    console.log("bKash payment request:", { course_id, amount, phone_number, user_id: user.id });
+    console.log("bKash payment request:", { course_id, amount, phone_number, user_id: userId, is_guest: !userId });
 
     // Validate required fields
     if (!course_id || !amount || !phone_number) {
       return new Response(
         JSON.stringify({ success: false, error: "অসম্পূর্ণ তথ্য" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate billing info for guest users
+    if (!userId && (!billing_info?.full_name || !billing_info?.email)) {
+      return new Response(
+        JSON.stringify({ success: false, error: "গেস্ট চেকআউটের জন্য নাম ও ইমেইল আবশ্যক" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -65,7 +68,6 @@ serve(async (req) => {
       );
     }
 
-    // bKash API base URL (sandbox for testing, production for live)
     const bkashBaseUrl = "https://tokenized.pay.bka.sh/v1.2.0-beta";
 
     // Step 1: Grant Token
@@ -96,11 +98,7 @@ serve(async (req) => {
     }
 
     const idToken = tokenData.id_token;
-
-    // Generate unique payment ID
     const paymentId = `PAY-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-
-    // Get the callback URLs
     const origin = req.headers.get("origin") || "https://papeleducareapp.lovable.app";
     const callbackURL = `${Deno.env.get("SUPABASE_URL")}/functions/v1/bkash-callback`;
 
@@ -116,7 +114,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         mode: "0011",
-        payerReference: user.id,
+        payerReference: userId || `guest-${phone_number}`,
         callbackURL: callbackURL,
         amount: amount.toString(),
         currency: "BDT",
@@ -137,23 +135,29 @@ serve(async (req) => {
     }
 
     // Store pending payment in database
-    const { data: payment, error: paymentError } = await supabase
+    const paymentData: any = {
+      course_id: course_id,
+      amount: amount,
+      payment_method: "bkash",
+      status: "pending",
+      transaction_id: createPaymentData.paymentID,
+      billing_info: billing_info,
+      gateway_response: {
+        bkash_payment_id: createPaymentData.paymentID,
+        merchant_invoice: paymentId,
+        id_token: idToken,
+        origin: origin,
+        is_guest: !userId,
+      },
+    };
+
+    if (userId) {
+      paymentData.user_id = userId;
+    }
+
+    const { data: payment, error: paymentError } = await supabaseAdmin
       .from("payments")
-      .insert({
-        user_id: user.id,
-        course_id: course_id,
-        amount: amount,
-        payment_method: "bkash",
-        status: "pending",
-        transaction_id: createPaymentData.paymentID,
-        billing_info: billing_info,
-        gateway_response: {
-          bkash_payment_id: createPaymentData.paymentID,
-          merchant_invoice: paymentId,
-          id_token: idToken,
-          origin: origin,
-        },
-      })
+      .insert(paymentData)
       .select()
       .single();
 

@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { PlayCircle, Clock, FileText, Award, Calendar, Play, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
 import { useIsEnrolled } from "@/hooks/useEnrollments";
 import { Course } from "@/hooks/useCourses";
 
@@ -14,7 +13,6 @@ interface CoursePricingCardProps {
 
 const CoursePricingCard = ({ course, onPlayPreview, onPlayHowToEnroll }: CoursePricingCardProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { data: isEnrolled } = useIsEnrolled(course.id);
 
   const features = [
@@ -92,13 +90,7 @@ const CoursePricingCard = ({ course, onPlayPreview, onPlayHowToEnroll }: CourseP
         <Button
           className="w-full gradient-primary mb-3"
           size="lg"
-          onClick={() => {
-            if (!user) {
-              navigate("/auth");
-            } else {
-              navigate(`/checkout/${course.id}`);
-            }
-          }}
+          onClick={() => navigate(`/checkout/${course.id}`)}
         >
           এখনই এনরোল করুন
         </Button>
