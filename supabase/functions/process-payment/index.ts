@@ -13,43 +13,45 @@ interface PaymentRequest {
   payment_method: "bkash" | "nagad" | "rocket" | "moynapay";
   transaction_id: string;
   phone_number: string;
+  billing_info?: {
+    full_name: string;
+    email: string;
+    institute?: string;
+    address?: string;
+  };
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify user authentication
+    // Check for auth - optional for guest checkout
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "অনুগ্রহ করে লগইন করুন" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
+    let userId: string | null = null;
 
-    const supabase = createClient(
+    // Use service role for DB operations to bypass RLS for guest payments
+    const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !userData.user) {
-      return new Response(
-        JSON.stringify({ error: "অবৈধ সেশন। অনুগ্রহ করে আবার লগইন করুন" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+    if (authHeader?.startsWith("Bearer ")) {
+      const supabaseAuth = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
       );
+      const token = authHeader.replace("Bearer ", "");
+      const { data: userData } = await supabaseAuth.auth.getUser(token);
+      if (userData.user) {
+        userId = userData.user.id;
+      }
     }
 
-    const userId = userData.user.id;
     const body: PaymentRequest = await req.json();
-    const { course_id, amount, payment_method, transaction_id, phone_number } = body;
+    const { course_id, amount, payment_method, transaction_id, phone_number, billing_info } = body;
 
     // Validate required fields
     if (!course_id || !amount || !payment_method || !transaction_id) {
@@ -59,8 +61,16 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Verify course exists and get price
-    const { data: course, error: courseError } = await supabase
+    // Validate billing info for guest users
+    if (!userId && (!billing_info?.full_name || !billing_info?.email)) {
+      return new Response(
+        JSON.stringify({ error: "গেস্ট চেকআউটের জন্য নাম ও ইমেইল আবশ্যক" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Verify course exists
+    const { data: course, error: courseError } = await supabaseAdmin
       .from("courses")
       .select("id, title, price, discount_price")
       .eq("id", course_id)
@@ -73,36 +83,45 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if user already enrolled
-    const { data: existingEnrollment } = await supabase
-      .from("enrollments")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("course_id", course_id)
-      .single();
+    // Check if logged-in user already enrolled
+    if (userId) {
+      const { data: existingEnrollment } = await supabaseAdmin
+        .from("enrollments")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("course_id", course_id)
+        .single();
 
-    if (existingEnrollment) {
-      return new Response(
-        JSON.stringify({ error: "আপনি ইতিমধ্যে এই কোর্সে এনরোল করেছেন" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      if (existingEnrollment) {
+        return new Response(
+          JSON.stringify({ error: "আপনি ইতিমধ্যে এই কোর্সে এনরোল করেছেন" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
     }
 
-    // Create payment record with pending status
-    const { data: payment, error: paymentError } = await supabase
+    // Create payment record
+    const paymentData: any = {
+      course_id: course_id,
+      amount: amount,
+      payment_method: payment_method,
+      transaction_id: transaction_id,
+      status: "pending",
+      billing_info: billing_info || {},
+      gateway_response: {
+        phone_number: phone_number,
+        submitted_at: new Date().toISOString(),
+        is_guest: !userId,
+      },
+    };
+
+    if (userId) {
+      paymentData.user_id = userId;
+    }
+
+    const { data: payment, error: paymentError } = await supabaseAdmin
       .from("payments")
-      .insert({
-        user_id: userId,
-        course_id: course_id,
-        amount: amount,
-        payment_method: payment_method,
-        transaction_id: transaction_id,
-        status: "pending",
-        gateway_response: {
-          phone_number: phone_number,
-          submitted_at: new Date().toISOString(),
-        },
-      })
+      .insert(paymentData)
       .select()
       .single();
 
@@ -114,16 +133,18 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create notification for user
-    await supabase.from("notifications").insert({
-      user_id: userId,
-      title: "পেমেন্ট জমা হয়েছে",
-      message: `আপনার "${course.title}" কোর্সের পেমেন্ট জমা হয়েছে। যাচাই করা হচ্ছে...`,
-      type: "payment",
-      link: "/dashboard/payments",
-    });
+    // Create notification only for logged-in users
+    if (userId) {
+      await supabaseAdmin.from("notifications").insert({
+        user_id: userId,
+        title: "পেমেন্ট জমা হয়েছে",
+        message: `আপনার "${course.title}" কোর্সের পেমেন্ট জমা হয়েছে। যাচাই করা হচ্ছে...`,
+        type: "payment",
+        link: "/dashboard/payments",
+      });
+    }
 
-    console.log("Payment submitted:", payment.id, "for course:", course.title);
+    console.log("Payment submitted:", payment.id, "for course:", course.title, "guest:", !userId);
 
     return new Response(
       JSON.stringify({

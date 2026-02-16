@@ -63,12 +63,15 @@ const Checkout = () => {
     const message = searchParams.get("message");
 
     if (paymentStatus === "success") {
-      // Redirect to dashboard on success
       toast({
         title: "পেমেন্ট সফল!",
         description: "আপনার কোর্সে এনরোলমেন্ট সম্পন্ন হয়েছে।",
       });
-      navigate("/dashboard/courses", { replace: true });
+      if (user) {
+        navigate("/dashboard/courses", { replace: true });
+      } else {
+        setIsSuccess(true);
+      }
     } else if (paymentStatus === "error" || paymentStatus === "cancel") {
       toast({
         title: paymentStatus === "cancel" ? "পেমেন্ট বাতিল" : "পেমেন্ট ব্যর্থ",
@@ -76,7 +79,19 @@ const Checkout = () => {
         variant: "destructive",
       });
     }
-  }, [searchParams, navigate, toast]);
+  }, [searchParams, navigate, toast, user]);
+
+  // Update billing info when profile loads
+  useEffect(() => {
+    if (profile) {
+      setBillingInfo(prev => ({
+        ...prev,
+        fullName: prev.fullName || profile.full_name || "",
+        phone: prev.phone || profile.phone || "",
+        email: prev.email || profile.email || "",
+      }));
+    }
+  }, [profile]);
   
   // Billing form state
   const [billingInfo, setBillingInfo] = useState({
@@ -86,11 +101,6 @@ const Checkout = () => {
     institute: "",
     address: "",
   });
-
-  if (!user) {
-    navigate("/auth");
-    return null;
-  }
 
   if (isLoading) {
     return (
@@ -246,12 +256,14 @@ const Checkout = () => {
             <h1 className="text-2xl font-bold mb-4">পেমেন্ট জমা হয়েছে!</h1>
             <p className="text-muted-foreground mb-6">
               আপনার পেমেন্ট সফলভাবে জমা হয়েছে। অ্যাডমিন যাচাই করার পর আপনাকে 
-              নোটিফিকেশন এবং SMS এর মাধ্যমে জানানো হবে।
+              {user ? " নোটিফিকেশন এবং " : " "}SMS এর মাধ্যমে জানানো হবে।
             </p>
             <div className="flex gap-4 justify-center">
-              <Button variant="outline" onClick={() => navigate("/dashboard/payments")}>
-                পেমেন্ট হিস্ট্রি
-              </Button>
+              {user && (
+                <Button variant="outline" onClick={() => navigate("/dashboard/payments")}>
+                  পেমেন্ট হিস্ট্রি
+                </Button>
+              )}
               <Button className="gradient-primary" onClick={() => navigate("/courses")}>
                 আরো কোর্স দেখুন
               </Button>
