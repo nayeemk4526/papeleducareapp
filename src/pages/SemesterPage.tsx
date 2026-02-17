@@ -1,34 +1,99 @@
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { User, ArrowLeft } from "lucide-react";
+import { User, ArrowLeft, BookOpen, Clock, Users, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileNavigation from "@/components/MobileNavigation";
+import { useCoursesByCategorySlug, type Course } from "@/hooks/useCourses";
 
-const semesterNames: Record<string, string> = {
-  "1": "১ম সেমিস্টার",
-  "2": "২য় সেমিস্টার",
-  "3": "৩য় সেমিস্টার",
-  "4": "৪র্থ সেমিস্টার",
-  "5": "৫ম সেমিস্টার",
-  "6": "৬ষ্ঠ সেমিস্টার",
-  "7": "৭ম সেমিস্টার",
+const semesterMap: Record<string, { name: string; slug: string }> = {
+  "1": { name: "১ম সেমিস্টার", slug: "1st-semester" },
+  "2": { name: "২য় সেমিস্টার", slug: "2nd-semester" },
+  "3": { name: "৩য় সেমিস্টার", slug: "3rd-semester" },
+  "4": { name: "৪র্থ সেমিস্টার", slug: "4th-semester" },
+  "5": { name: "৫ম সেমিস্টার", slug: "5th-semester" },
+  "6": { name: "৬ষ্ঠ সেমিস্টার", slug: "6th-semester" },
+  "7": { name: "৭ম সেমিস্টার", slug: "7th-semester" },
 };
 
-const coursesData = [
-  { id: 1, title: "ইলেকট্রিক্যাল সার্কিট অ্যানালাইসিস", instructor: "মোহাম্মদ রফিক", price: "১,৫০০", image: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400&q=80" },
-  { id: 2, title: "প্রোগ্রামিং ফান্ডামেন্টালস", instructor: "সাদিয়া আক্তার", price: "১,২০০", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80" },
-  { id: 3, title: "ইঞ্জিনিয়ারিং ড্রয়িং", instructor: "আব্দুল করিম", price: "১,০০০", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=80" },
-  { id: 4, title: "ম্যাথমেটিক্স", instructor: "নাজমুল হাসান", price: "৮০০", image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&q=80" },
-  { id: 5, title: "ফিজিক্স ফর ইঞ্জিনিয়ার্স", instructor: "ড. আবুল কালাম", price: "১,১০০", image: "https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa?w=400&q=80" },
-  { id: 6, title: "বাংলাদেশ স্টাডিজ", instructor: "মোস্তাফিজুর রহমান", price: "৫০০", image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80" },
-];
+const SemesterCourseCard = ({ course }: { course: Course }) => (
+  <motion.div
+    whileHover={{ y: -5 }}
+    className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
+  >
+    <Link to={`/course/${course.slug}`}>
+      <div className="relative h-40 overflow-hidden">
+        {course.thumbnail_url ? (
+          <img
+            src={course.thumbnail_url}
+            alt={course.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-secondary via-vibrant-pink to-primary flex items-center justify-center">
+            <BookOpen className="w-10 h-10 text-white/80" />
+          </div>
+        )}
+        {course.discount_price && (
+          <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-destructive text-destructive-foreground text-xs font-semibold shadow-lg">
+            {Math.round((1 - course.discount_price / course.price) * 100)}% ছাড়
+          </div>
+        )}
+      </div>
+    </Link>
+    <div className="p-4">
+      <Link to={`/course/${course.slug}`}>
+        <h4 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+          {course.title}
+        </h4>
+      </Link>
+      {course.instructor?.name && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+          <User className="w-4 h-4" />
+          <span>{course.instructor.name}</span>
+        </div>
+      )}
+      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+        {course.duration_hours && (
+          <div className="flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" />
+            <span>{course.duration_hours} ঘন্টা</span>
+          </div>
+        )}
+        {(course.total_students ?? 0) > 0 && (
+          <div className="flex items-center gap-1">
+            <Users className="w-3.5 h-3.5" />
+            <span>{course.total_students}+</span>
+          </div>
+        )}
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-primary">
+            ৳{(course.discount_price || course.price).toLocaleString()}
+          </span>
+          {course.discount_price && (
+            <span className="text-sm text-muted-foreground line-through">
+              ৳{course.price.toLocaleString()}
+            </span>
+          )}
+        </div>
+        <Link to={`/course/${course.slug}`}>
+          <Button size="sm" className="gradient-primary">
+            বিস্তারিত
+          </Button>
+        </Link>
+      </div>
+    </div>
+  </motion.div>
+);
 
 const SemesterPage = () => {
   const { id } = useParams<{ id: string }>();
-  const semesterName = semesterNames[id || "1"] || "সেমিস্টার";
+  const semester = semesterMap[id || "1"] || { name: "সেমিস্টার", slug: "1st-semester" };
+  const { data: courses, isLoading } = useCoursesByCategorySlug(semester.slug);
 
   return (
     <>
@@ -52,7 +117,7 @@ const SemesterPage = () => {
                 ডিপ্লোমা ডায়নামিক কোর্স
               </Link>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-                <span className="gradient-text">{semesterName}</span>
+                <span className="gradient-text">{semester.name}</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl">
                 এই সেমিস্টারের সকল কোর্স দেখুন এবং আপনার প্রয়োজনীয় কোর্সে ভর্তি হন।
@@ -63,40 +128,44 @@ const SemesterPage = () => {
 
         {/* Courses Grid */}
         <section className="section-container">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {coursesData.map((course, index) => (
-              <motion.div
-                key={course.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="bg-card rounded-xl border border-border overflow-hidden shadow-sm card-hover"
-              >
-                <div className="relative h-40 overflow-hidden">
-                  <img
-                    src={course.image}
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4">
-                  <h4 className="font-semibold text-foreground mb-2 line-clamp-2">{course.title}</h4>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                    <User className="w-4 h-4" />
-                    <span>{course.instructor}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-primary">৳{course.price}</span>
-                    <Button size="sm" className="gradient-primary">
-                      বিস্তারিত
-                    </Button>
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-card rounded-xl border border-border overflow-hidden animate-pulse">
+                  <div className="h-40 bg-muted" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-3 bg-muted rounded w-1/2" />
+                    <div className="h-8 bg-muted rounded" />
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : courses && courses.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.map((course, index) => (
+                <motion.div
+                  key={course.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <SemesterCourseCard course={course} />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <BookOpen className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-muted-foreground mb-2">
+                এই সেমিস্টারে এখনো কোনো কোর্স যোগ করা হয়নি
+              </h3>
+              <p className="text-muted-foreground">
+                শীঘ্রই কোর্স যোগ করা হবে। অপেক্ষা করুন।
+              </p>
+            </div>
+          )}
         </section>
       </main>
 
