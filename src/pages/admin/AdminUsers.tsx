@@ -36,6 +36,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
+
+const USERS_PER_PAGE = 15;
 
 interface UserProfile {
   id: string;
@@ -58,6 +69,7 @@ const AdminUsers = () => {
   const [viewUser, setViewUser] = useState<UserProfile | null>(null);
   const [deleteUser, setDeleteUser] = useState<UserProfile | null>(null);
   const [editForm, setEditForm] = useState({ full_name: "", phone: "" });
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch user roles
   const { data: userRoles } = useQuery({
@@ -192,6 +204,32 @@ const AdminUsers = () => {
     (u.phone && u.phone.includes(searchTerm))
   ) || [];
 
+  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+  const safeCurrentPage = Math.min(currentPage, Math.max(1, totalPages));
+  const paginatedUsers = filteredUsers.slice(
+    (safeCurrentPage - 1) * USERS_PER_PAGE,
+    safeCurrentPage * USERS_PER_PAGE
+  );
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const getPageNumbers = () => {
+    const pages: (number | "ellipsis")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (safeCurrentPage > 3) pages.push("ellipsis");
+      for (let i = Math.max(2, safeCurrentPage - 1); i <= Math.min(totalPages - 1, safeCurrentPage + 1); i++) pages.push(i);
+      if (safeCurrentPage < totalPages - 2) pages.push("ellipsis");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
   if (isLoading) {
     return (
       <AdminLayout title="ইউজার ম্যানেজমেন্ট">
@@ -208,7 +246,7 @@ const AdminUsers = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div className="relative max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input placeholder="ইউজার খুঁজুন..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <Input placeholder="ইউজার খুঁজুন..." className="pl-10" value={searchTerm} onChange={(e) => handleSearch(e.target.value)} />
         </div>
         <Button className="gradient-primary" onClick={() => setEnrollmentDialogOpen(true)}>
           <UserPlus className="w-4 h-4 mr-2" />
@@ -232,8 +270,8 @@ const AdminUsers = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((u) => {
+              {paginatedUsers.length > 0 ? (
+                paginatedUsers.map((u) => {
                   const role = getUserRole(u.user_id);
                   return (
                     <tr key={u.id} className="border-t border-border hover:bg-muted/30">
@@ -294,7 +332,49 @@ const AdminUsers = () => {
         </div>
       </div>
 
-      {/* View User Dialog */}
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+          <p className="text-sm text-muted-foreground">
+            মোট {filteredUsers.length} জন ইউজারের মধ্যে {(safeCurrentPage - 1) * USERS_PER_PAGE + 1}-{Math.min(safeCurrentPage * USERS_PER_PAGE, filteredUsers.length)} দেখাচ্ছে
+          </p>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className={safeCurrentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              {getPageNumbers().map((page, i) =>
+                page === "ellipsis" ? (
+                  <PaginationItem key={`e-${i}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      isActive={page === safeCurrentPage}
+                      onClick={() => setCurrentPage(page)}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className={safeCurrentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+
+
       <Dialog open={!!viewUser} onOpenChange={(open) => !open && setViewUser(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
