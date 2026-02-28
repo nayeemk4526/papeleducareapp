@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Eye, User, UserPlus, Pencil, X, Save } from "lucide-react";
+import { Search, Eye, User, UserPlus, Pencil, X, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -16,7 +16,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import AdminLayout from "@/components/admin/AdminLayout";
 import EnrollmentDialog from "@/components/admin/EnrollmentDialog";
@@ -45,6 +56,7 @@ const AdminUsers = () => {
   const [enrollmentDialogOpen, setEnrollmentDialogOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserProfile | null>(null);
   const [viewUser, setViewUser] = useState<UserProfile | null>(null);
+  const [deleteUser, setDeleteUser] = useState<UserProfile | null>(null);
   const [editForm, setEditForm] = useState({ full_name: "", phone: "" });
 
   // Fetch user roles
@@ -112,6 +124,36 @@ const AdminUsers = () => {
       queryClient.invalidateQueries({ queryKey: ["all-users"] });
       setEditUser(null);
       toast({ title: "সফল!", description: "প্রোফাইল আপডেট হয়েছে" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ user_id: userId }),
+        }
+      );
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Delete failed");
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-users"] });
+      queryClient.invalidateQueries({ queryKey: ["enrollment-counts"] });
+      setDeleteUser(null);
+      toast({ title: "সফল!", description: "ইউজার ডিলিট হয়েছে" });
     },
     onError: (error: Error) => {
       toast({ title: "ত্রুটি!", description: error.message, variant: "destructive" });
@@ -231,6 +273,9 @@ const AdminUsers = () => {
                           <Button size="icon" variant="ghost" title="এডিট করুন" onClick={() => handleEdit(u as UserProfile)}>
                             <Pencil className="w-4 h-4" />
                           </Button>
+                          <Button size="icon" variant="ghost" title="ডিলিট করুন" className="text-destructive hover:text-destructive" onClick={() => setDeleteUser(u as UserProfile)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -344,6 +389,28 @@ const AdminUsers = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete User Confirmation */}
+      <AlertDialog open={!!deleteUser} onOpenChange={(open) => !open && setDeleteUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ইউজার ডিলিট করুন</AlertDialogTitle>
+            <AlertDialogDescription>
+              আপনি কি নিশ্চিত যে <strong>{deleteUser?.full_name}</strong> ({deleteUser?.email}) কে ডিলিট করতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না। ইউজারের সকল ডেটা, এনরোলমেন্ট এবং প্রগ্রেস মুছে যাবে।
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteUser && deleteUserMutation.mutate(deleteUser.user_id)}
+              disabled={deleteUserMutation.isPending}
+            >
+              {deleteUserMutation.isPending ? "ডিলিট হচ্ছে..." : "ডিলিট করুন"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Enrollment Dialog */}
       <EnrollmentDialog open={enrollmentDialogOpen} onOpenChange={setEnrollmentDialogOpen} />
