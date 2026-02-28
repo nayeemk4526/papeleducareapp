@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Eye, User, UserPlus, Pencil, X, Save, Trash2 } from "lucide-react";
+import { Search, Eye, User, UserPlus, Pencil, X, Save, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -216,6 +216,28 @@ const AdminUsers = () => {
     setCurrentPage(1);
   };
 
+  const handleExportCSV = () => {
+    if (!filteredUsers.length) return;
+    const headers = ["নাম", "ইমেইল", "ফোন", "রোল", "এনরোলমেন্ট", "যোগদান"];
+    const rows = filteredUsers.map(u => [
+      u.full_name,
+      u.email,
+      u.phone || "",
+      getUserRole(u.user_id),
+      String(enrollmentCounts?.[u.user_id] || 0),
+      format(new Date(u.created_at), "dd/MM/yyyy"),
+    ]);
+    const csvContent = "\uFEFF" + [headers, ...rows].map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `users-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "সফল!", description: `${filteredUsers.length} জন ইউজারের ডেটা এক্সপোর্ট হয়েছে` });
+  };
+
   const getPageNumbers = () => {
     const pages: (number | "ellipsis")[] = [];
     if (totalPages <= 7) {
@@ -248,10 +270,16 @@ const AdminUsers = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input placeholder="ইউজার খুঁজুন..." className="pl-10" value={searchTerm} onChange={(e) => handleSearch(e.target.value)} />
         </div>
-        <Button className="gradient-primary" onClick={() => setEnrollmentDialogOpen(true)}>
-          <UserPlus className="w-4 h-4 mr-2" />
-          ম্যানুয়াল এনরোলমেন্ট
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportCSV} disabled={!filteredUsers.length}>
+            <Download className="w-4 h-4 mr-2" />
+            CSV এক্সপোর্ট
+          </Button>
+          <Button className="gradient-primary" onClick={() => setEnrollmentDialogOpen(true)}>
+            <UserPlus className="w-4 h-4 mr-2" />
+            ম্যানুয়াল এনরোলমেন্ট
+          </Button>
+        </div>
       </div>
 
       {/* Users Table */}
