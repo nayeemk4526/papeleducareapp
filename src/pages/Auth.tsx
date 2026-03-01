@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { signUp, signIn, signUpSchema, signInSchema } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import Navbar from "@/components/Navbar";
 import logoImage from "@/assets/logo.png";
@@ -75,26 +76,36 @@ const Auth = () => {
     }
   };
 
+  // Check if input looks like a phone number
+  const isPhoneNumber = (input: string) => /^0\d{10,13}$/.test(input.replace(/[-\s]/g, ''));
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
     setIsLoading(true);
 
     try {
-      const validation = signInSchema.safeParse(loginData);
-      if (!validation.success) {
-        const fieldErrors: Record<string, string> = {};
-        validation.error.errors.forEach((err) => {
-          if (err.path[0]) {
-            fieldErrors[err.path[0] as string] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
+      if (!loginData.email || !loginData.password) {
+        setErrors({ email: !loginData.email ? "ইমেইল বা ফোন নম্বর দিন" : "", password: !loginData.password ? "পাসওয়ার্ড দিন" : "" });
         setIsLoading(false);
         return;
       }
 
-      await signIn(loginData);
+      let emailToUse = loginData.email;
+
+      // If input looks like a phone number, look up email
+      if (isPhoneNumber(loginData.email)) {
+        const { data } = await supabase.functions.invoke("login-with-phone", {
+          body: { phone: loginData.email, password: loginData.password },
+        });
+
+        if (!data?.success || !data?.email) {
+          throw new Error(data?.error || "এই ফোন নম্বর দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি");
+        }
+        emailToUse = data.email;
+      }
+
+      await signIn({ email: emailToUse, password: loginData.password });
       toast({
         title: "সফলভাবে লগইন হয়েছে!",
         description: "আপনাকে স্বাগতম।",
@@ -230,13 +241,17 @@ const Auth = () => {
               {isLogin ? (
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email" className="text-sm">ইমেইল</Label>
+                    <Label htmlFor="login-email" className="text-sm">ইমেইল বা ফোন নম্বর</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      {isPhoneNumber(loginData.email) ? (
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      )}
                       <Input
                         id="login-email"
-                        type="email"
-                        placeholder="আপনার ইমেইল"
+                        type="text"
+                        placeholder="ইমেইল বা ফোন নম্বর"
                         className="pl-10"
                         value={loginData.email}
                         onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
