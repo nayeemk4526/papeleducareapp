@@ -64,6 +64,7 @@ const AdminUsers = () => {
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [enrollmentDialogOpen, setEnrollmentDialogOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserProfile | null>(null);
   const [viewUser, setViewUser] = useState<UserProfile | null>(null);
@@ -198,11 +199,13 @@ const AdminUsers = () => {
     updateProfile.mutate({ id: editUser.id, full_name: editForm.full_name, phone: editForm.phone });
   };
 
-  const filteredUsers = users?.filter(u =>
-    u.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (u.phone && u.phone.includes(searchTerm))
-  ) || [];
+  const filteredUsers = users?.filter(u => {
+    const matchesSearch = u.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (u.phone && u.phone.includes(searchTerm));
+    const matchesRole = roleFilter === "all" || getUserRole(u.user_id) === roleFilter;
+    return matchesSearch && matchesRole;
+  }) || [];
 
   const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
   const safeCurrentPage = Math.min(currentPage, Math.max(1, totalPages));
@@ -266,9 +269,22 @@ const AdminUsers = () => {
     <AdminLayout title="ইউজার ম্যানেজমেন্ট" subtitle="সকল ইউজার পরিচালনা করুন">
       {/* Header Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div className="relative max-w-md flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input placeholder="ইউজার খুঁজুন..." className="pl-10" value={searchTerm} onChange={(e) => handleSearch(e.target.value)} />
+        <div className="flex flex-1 gap-2 max-w-lg">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input placeholder="ইউজার খুঁজুন..." className="pl-10" value={searchTerm} onChange={(e) => handleSearch(e.target.value)} />
+          </div>
+          <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setCurrentPage(1); }}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="সব রোল" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">সব রোল</SelectItem>
+              <SelectItem value="student">শিক্ষার্থী</SelectItem>
+              <SelectItem value="teacher">শিক্ষক</SelectItem>
+              <SelectItem value="admin">অ্যাডমিন</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExportCSV} disabled={!filteredUsers.length}>
