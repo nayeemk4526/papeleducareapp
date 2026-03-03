@@ -73,13 +73,10 @@ const HeroSlider = () => {
           <AnimatePresence mode="wait">
             <motion.div
               key={current.id}
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{
-                opacity: { duration: 0.7, ease: "easeInOut" },
-                scale: { duration: 5, ease: "easeOut" },
-              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.3}
@@ -90,31 +87,19 @@ const HeroSlider = () => {
               className={`w-full aspect-[16/9] ${current.link_url ? "cursor-pointer" : ""}`}
               onClick={() => handleSlideClick(current.link_url)}
             >
-              {/* Ken Burns zoom on the image itself */}
-              <motion.img
+              <img
                 src={current.image_url}
                 alt={current.title || "Hero slide"}
                 className="w-full h-full object-cover"
-                initial={{ scale: 1 }}
-                animate={{ scale: 1.08 }}
-                transition={{ duration: 6, ease: "linear" }}
               />
-
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
 
               {/* Title */}
               {current.title && (
                 <div className="absolute inset-0 flex items-end">
                   <div className="px-4 pb-8 md:pb-12">
-                    <motion.h2
-                      initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
-                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                      transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
-                      className="text-xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg"
-                    >
+                    <h2 className="text-xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg">
                       {current.title}
-                    </motion.h2>
+                    </h2>
                   </div>
                 </div>
               )}
