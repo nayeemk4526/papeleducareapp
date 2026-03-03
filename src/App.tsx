@@ -40,6 +40,7 @@ import AdminTeachers from "./pages/admin/AdminTeachers";
 import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminTestimonials from "./pages/admin/AdminTestimonials";
 import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
+import AdminHeroSlides from "./pages/admin/AdminHeroSlides";
 
 // Course Pages
 import CourseDetail from "./pages/CourseDetail";
@@ -93,6 +94,7 @@ const App = () => (
                   <Route path="/admin/coupons" element={<AdminCoupons />} />
                   <Route path="/admin/testimonials" element={<AdminTestimonials />} />
                   <Route path="/admin/payment-settings" element={<AdminPaymentSettings />} />
+                  <Route path="/admin/hero-slides" element={<AdminHeroSlides />} />
 
                   {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />
