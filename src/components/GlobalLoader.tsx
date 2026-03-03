@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import logo from "@/assets/logo.png";
 
 interface GlobalLoaderProps {
   onLoadingComplete?: () => void;
@@ -70,13 +71,13 @@ const GlobalLoader = ({ onLoadingComplete }: GlobalLoaderProps) => {
           >
             {/* Animated Icon */}
             <motion.div
-              className="w-20 h-20 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center"
+              className="w-20 h-20 mx-auto mb-4 rounded-2xl overflow-hidden flex items-center justify-center bg-white shadow-lg"
               animate={{
                 rotateY: [0, 360],
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             >
-              <span className="text-3xl font-bold text-primary-foreground">প</span>
+              <img src={logo} alt="Papel Edu-Care" className="w-16 h-16 object-contain" />
             </motion.div>
 
             {/* Brand Name */}
