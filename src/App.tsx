@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MobileNavigation from "@/components/MobileNavigation";
@@ -47,61 +48,63 @@ import Checkout from "./pages/Checkout";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <div className="min-h-screen pb-20 lg:pb-0">
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/courses" element={<Courses />} />
-                <Route path="/course/:slug" element={<CourseDetail />} />
-                <Route path="/checkout/:courseId" element={<Checkout />} />
-                <Route path="/diploma-dynamic" element={<DiplomaDynamic />} />
-                <Route path="/semester/:id" element={<SemesterPage />} />
-                <Route path="/category/:slug" element={<CategoryPage />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/refund" element={<RefundPolicy />} />
-                <Route path="/terms" element={<TermsConditions />} />
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <div className="min-h-screen pb-20 lg:pb-0">
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/courses" element={<Courses />} />
+                  <Route path="/course/:slug" element={<CourseDetail />} />
+                  <Route path="/checkout/:courseId" element={<Checkout />} />
+                  <Route path="/diploma-dynamic" element={<DiplomaDynamic />} />
+                  <Route path="/semester/:id" element={<SemesterPage />} />
+                  <Route path="/category/:slug" element={<CategoryPage />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/refund" element={<RefundPolicy />} />
+                  <Route path="/terms" element={<TermsConditions />} />
 
-                {/* Student Dashboard Routes */}
-                <Route path="/dashboard" element={<StudentDashboard />} />
-                <Route path="/dashboard/courses" element={<MyCourses />} />
-                <Route path="/dashboard/course/:courseId" element={<CoursePlayer />} />
-                <Route path="/dashboard/payments" element={<PaymentHistory />} />
-                <Route path="/dashboard/profile" element={<ProfileSettings />} />
+                  {/* Student Dashboard Routes */}
+                  <Route path="/dashboard" element={<StudentDashboard />} />
+                  <Route path="/dashboard/courses" element={<MyCourses />} />
+                  <Route path="/dashboard/course/:courseId" element={<CoursePlayer />} />
+                  <Route path="/dashboard/payments" element={<PaymentHistory />} />
+                  <Route path="/dashboard/profile" element={<ProfileSettings />} />
 
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/courses" element={<AdminCourses />} />
-                <Route path="/admin/courses/:courseId" element={<AdminCourseManagement />} />
-                <Route path="/admin/users" element={<AdminUsers />} />
-                <Route path="/admin/payments" element={<AdminPayments />} />
-                <Route path="/admin/categories" element={<AdminCategories />} />
-                <Route path="/admin/teachers" element={<AdminTeachers />} />
-                <Route path="/admin/coupons" element={<AdminCoupons />} />
-                <Route path="/admin/testimonials" element={<AdminTestimonials />} />
-                <Route path="/admin/payment-settings" element={<AdminPaymentSettings />} />
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/courses" element={<AdminCourses />} />
+                  <Route path="/admin/courses/:courseId" element={<AdminCourseManagement />} />
+                  <Route path="/admin/users" element={<AdminUsers />} />
+                  <Route path="/admin/payments" element={<AdminPayments />} />
+                  <Route path="/admin/categories" element={<AdminCategories />} />
+                  <Route path="/admin/teachers" element={<AdminTeachers />} />
+                  <Route path="/admin/coupons" element={<AdminCoupons />} />
+                  <Route path="/admin/testimonials" element={<AdminTestimonials />} />
+                  <Route path="/admin/payment-settings" element={<AdminPaymentSettings />} />
 
-                {/* Catch-all */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <MobileNavigation />
-            </div>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+                  {/* Catch-all */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <MobileNavigation />
+              </div>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;
