@@ -87,7 +87,7 @@ const HeroSlider = () => {
                 if (info.offset.x > 80) prevSlide();
                 else if (info.offset.x < -80) nextSlide();
               }}
-              className={`absolute inset-0 ${current.link_url ? "cursor-pointer" : ""}`}
+              className={`w-full aspect-[16/9] ${current.link_url ? "cursor-pointer" : ""}`}
               onClick={() => handleSlideClick(current.link_url)}
             >
               {/* Ken Burns zoom on the image itself */}
