@@ -70,6 +70,13 @@ const HeroSlider = () => {
             opacity: { duration: 0.7, ease: "easeInOut" },
             scale: { duration: 5, ease: "easeOut" },
           }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.3}
+          onDragEnd={(_, info) => {
+            if (info.offset.x > 80) prevSlide();
+            else if (info.offset.x < -80) nextSlide();
+          }}
           className={`relative w-full aspect-[16/6] md:aspect-[16/5] ${current.link_url ? "cursor-pointer" : ""}`}
           onClick={() => handleSlideClick(current.link_url)}
         >
