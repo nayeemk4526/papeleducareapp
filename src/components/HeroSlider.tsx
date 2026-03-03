@@ -44,14 +44,22 @@ const HeroSlider = () => {
 
   if (isLoading) {
     return (
-      <section className="relative w-full aspect-[16/6] md:aspect-[16/5] bg-muted animate-pulse" />
+      <section className="w-full bg-muted">
+        <div className="container mx-auto">
+          <div className="w-full aspect-[16/9] animate-pulse bg-muted" />
+        </div>
+      </section>
     );
   }
 
   if (!activeSlides.length) {
     return (
-      <section className="relative w-full aspect-[16/6] md:aspect-[16/5] bg-gradient-to-br from-secondary via-secondary/90 to-vibrant-pink flex items-center justify-center">
-        <p className="text-white/60 text-lg">কোনো স্লাইড নেই</p>
+      <section className="w-full bg-gradient-to-br from-secondary via-secondary/90 to-vibrant-pink">
+        <div className="container mx-auto">
+          <div className="w-full aspect-[16/9] flex items-center justify-center">
+            <p className="text-white/60 text-lg">কোনো স্লাইড নেই</p>
+          </div>
+        </div>
       </section>
     );
   }
@@ -59,106 +67,110 @@ const HeroSlider = () => {
   const current = activeSlides[currentSlide];
 
   return (
-    <section className="relative w-full overflow-hidden bg-black">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={current.id}
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.97 }}
-          transition={{
-            opacity: { duration: 0.7, ease: "easeInOut" },
-            scale: { duration: 5, ease: "easeOut" },
-          }}
-          drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.3}
-          onDragEnd={(_, info) => {
-            if (info.offset.x > 80) prevSlide();
-            else if (info.offset.x < -80) nextSlide();
-          }}
-          className={`relative w-full aspect-[16/6] md:aspect-[16/5] ${current.link_url ? "cursor-pointer" : ""}`}
-          onClick={() => handleSlideClick(current.link_url)}
-        >
-          {/* Ken Burns zoom on the image itself */}
-          <motion.img
-            src={current.image_url}
-            alt={current.title || "Hero slide"}
-            className="w-full h-full object-cover"
-            initial={{ scale: 1 }}
-            animate={{ scale: 1.08 }}
-            transition={{ duration: 6, ease: "linear" }}
-          />
+    <section className="w-full bg-black">
+      <div className="container mx-auto">
+        <div className="relative w-full aspect-[16/9] overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current.id}
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{
+                opacity: { duration: 0.7, ease: "easeInOut" },
+                scale: { duration: 5, ease: "easeOut" },
+              }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.3}
+              onDragEnd={(_, info) => {
+                if (info.offset.x > 80) prevSlide();
+                else if (info.offset.x < -80) nextSlide();
+              }}
+              className={`absolute inset-0 ${current.link_url ? "cursor-pointer" : ""}`}
+              onClick={() => handleSlideClick(current.link_url)}
+            >
+              {/* Ken Burns zoom on the image itself */}
+              <motion.img
+                src={current.image_url}
+                alt={current.title || "Hero slide"}
+                className="w-full h-full object-cover"
+                initial={{ scale: 1 }}
+                animate={{ scale: 1.08 }}
+                transition={{ duration: 6, ease: "linear" }}
+              />
 
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
 
-          {/* Title */}
-          {current.title && (
-            <div className="absolute inset-0 flex items-end">
-              <div className="container mx-auto px-4 pb-12 md:pb-16">
-                <motion.h2
-                  initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
-                  className="text-xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg"
-                >
-                  {current.title}
-                </motion.h2>
-              </div>
+              {/* Title */}
+              {current.title && (
+                <div className="absolute inset-0 flex items-end">
+                  <div className="px-4 pb-8 md:pb-12">
+                    <motion.h2
+                      initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
+                      className="text-xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg"
+                    >
+                      {current.title}
+                    </motion.h2>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation Arrows */}
+          {activeSlides.length > 1 && (
+            <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2 md:px-6 z-20 pointer-events-none">
+              <motion.button
+                whileHover={{ scale: 1.15, backgroundColor: "rgba(0,0,0,0.5)" }}
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+                className="p-2 md:p-3 rounded-full bg-black/25 backdrop-blur-md text-white transition-colors pointer-events-auto border border-white/10"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.15, backgroundColor: "rgba(0,0,0,0.5)" }}
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+                className="p-2 md:p-3 rounded-full bg-black/25 backdrop-blur-md text-white transition-colors pointer-events-auto border border-white/10"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+              </motion.button>
             </div>
           )}
-        </motion.div>
-      </AnimatePresence>
 
-      {/* Navigation Arrows */}
-      {activeSlides.length > 1 && (
-        <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2 md:px-6 z-20 pointer-events-none">
-          <motion.button
-            whileHover={{ scale: 1.15, backgroundColor: "rgba(0,0,0,0.5)" }}
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-            className="p-2 md:p-3 rounded-full bg-black/25 backdrop-blur-md text-white transition-colors pointer-events-auto border border-white/10"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.15, backgroundColor: "rgba(0,0,0,0.5)" }}
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-            className="p-2 md:p-3 rounded-full bg-black/25 backdrop-blur-md text-white transition-colors pointer-events-auto border border-white/10"
-            aria-label="Next slide"
-          >
-            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-          </motion.button>
+          {/* Slide Indicators */}
+          {activeSlides.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+              {activeSlides.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => { e.stopPropagation(); setCurrentSlide(index); }}
+                  className="relative h-2.5 rounded-full overflow-hidden transition-all duration-300"
+                  style={{ width: index === currentSlide ? 32 : 10 }}
+                  aria-label={`Go to slide ${index + 1}`}
+                >
+                  <span className="absolute inset-0 bg-white/40 rounded-full" />
+                  {index === currentSlide && (
+                    <motion.span
+                      className="absolute inset-0 bg-white rounded-full origin-left"
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ duration: 5, ease: "linear" }}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Slide Indicators with progress animation */}
-      {activeSlides.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-          {activeSlides.map((_, index) => (
-            <button
-              key={index}
-              onClick={(e) => { e.stopPropagation(); setCurrentSlide(index); }}
-              className="relative h-2.5 rounded-full overflow-hidden transition-all duration-300"
-              style={{ width: index === currentSlide ? 32 : 10 }}
-              aria-label={`Go to slide ${index + 1}`}
-            >
-              <span className="absolute inset-0 bg-white/40 rounded-full" />
-              {index === currentSlide && (
-                <motion.span
-                  className="absolute inset-0 bg-white rounded-full origin-left"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 5, ease: "linear" }}
-                />
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+      </div>
     </section>
   );
 };
