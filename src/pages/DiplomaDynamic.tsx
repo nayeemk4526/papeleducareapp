@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import MobileNavigation from "@/components/MobileNavigation";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +47,7 @@ const DiplomaDynamic = () => {
 
   return (
     <>
+      <SEO title="ডিপ্লোমা কোর্সসমূহ" description="Papel Edu-Care এর ডিপ্লোমা কোর্সসমূহ। সেমিস্টার অনুযায়ী কোর্স দেখুন।" />
       <Navbar />
       
       <main className="pt-20 pb-16 lg:pb-0">

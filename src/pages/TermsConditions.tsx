@@ -1,10 +1,12 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { motion } from "framer-motion";
 
 const TermsConditions = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="শর্তাবলী" description="Papel Edu-Care এর ব্যবহারের শর্তাবলী। সেবা ব্যবহারের আগে শর্তাবলী পড়ুন।" />
       <Navbar />
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         <motion.div

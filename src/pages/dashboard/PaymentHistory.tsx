@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const PaymentHistory = () => {
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ const PaymentHistory = () => {
 
   return (
     <>
+      <SEO title="পেমেন্ট হিস্ট্রি" description="আপনার পেমেন্টের তালিকা ও স্ট্যাটাস দেখুন।" />
       <Navbar />
       
       <main className="pt-20 min-h-screen bg-muted/30">

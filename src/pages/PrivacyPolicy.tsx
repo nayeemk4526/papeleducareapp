@@ -1,10 +1,12 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { motion } from "framer-motion";
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="গোপনীয়তা নীতি" description="Papel Edu-Care এর গোপনীয়তা নীতি। আপনার তথ্যের নিরাপত্তা আমাদের অগ্রাধিকার।" />
       <Navbar />
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         <motion.div

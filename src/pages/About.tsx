@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Target, Eye, Heart, Users } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const values = [
   {
@@ -33,6 +34,7 @@ const values = [
 const About = () => {
   return (
     <>
+      <SEO title="আমাদের সম্পর্কে" description="Papel Edu-Care সম্পর্কে জানুন। আমাদের লক্ষ্য, দৃষ্টি ও মূল্যবোধ। বাংলাদেশের শিক্ষার্থীদের মানসম্মত অনলাইন শিক্ষা প্রদানে নিবেদিত।" />
       <Navbar />
       
       <main className="pt-20">

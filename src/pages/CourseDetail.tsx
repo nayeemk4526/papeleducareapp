@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useCourseBySlug } from "@/hooks/useCourses";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 // Course Detail Components
 import CourseHero from "@/components/course-detail/CourseHero";
@@ -54,6 +55,7 @@ const CourseDetail = () => {
 
   return (
     <>
+      <SEO title={course.title} description={course.short_description || course.description || `${course.title} - Papel Edu-Care এ ভর্তি হন`} />
       <Navbar />
       
       <main className="pt-20 min-h-screen">

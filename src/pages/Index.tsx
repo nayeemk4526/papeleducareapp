@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
+import SEO from "@/components/SEO";
 import GlobalLoader from "@/components/GlobalLoader";
 import HeroSlider from "@/components/HeroSlider";
 import CategoryGrid from "@/components/CategoryGrid";
@@ -16,6 +17,7 @@ const Index = () => {
 
   return (
     <>
+      <SEO title="হোম" description="Papel Edu-Care - বাংলাদেশের সেরা অনলাইন শিক্ষা প্ল্যাটফর্ম। দক্ষ শিক্ষকদের সাথে মানসম্মত কোর্সে ভর্তি হন।" keywords="অনলাইন কোর্স, বাংলাদেশ, শিক্ষা, পাপেল এডু-কেয়ার" />
       {isLoading && <GlobalLoader onLoadingComplete={() => setIsLoading(false)} />}
       
       <div className={isLoading ? "hidden" : ""}>

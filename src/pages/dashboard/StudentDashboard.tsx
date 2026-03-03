@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ const StudentDashboard = () => {
 
   return (
     <>
+      <SEO title="ড্যাশবোর্ড" description="আপনার শিক্ষা ড্যাশবোর্ড। কোর্স, অগ্রগতি ও সার্টিফিকেট ট্র্যাক করুন।" />
       <Navbar />
       
       <main className="pt-20 min-h-screen bg-muted/30">

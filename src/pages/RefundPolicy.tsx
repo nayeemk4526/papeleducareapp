@@ -1,10 +1,12 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { motion } from "framer-motion";
 
 const RefundPolicy = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="রিফান্ড নীতি" description="Papel Edu-Care এর রিফান্ড নীতি। কোর্স ফেরত সংক্রান্ত শর্তাবলী জানুন।" />
       <Navbar />
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         <motion.div

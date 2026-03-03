@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { useCourses } from "@/hooks/useCourses";
 import { useCategories } from "@/hooks/useCategories";
 import { useState } from "react";
@@ -25,6 +26,7 @@ const Courses = () => {
 
   return (
     <>
+      <SEO title="সকল কোর্সসমূহ" description="Papel Edu-Care এর সকল কোর্স দেখুন। প্রযুক্তি, ডিপ্লোমা ও দক্ষতা উন্নয়নের জন্য মানসম্মত অনলাইন কোর্স।" keywords="কোর্স, অনলাইন শিক্ষা, ডিপ্লোমা, বাংলাদেশ" />
       <Navbar />
       
       <main className="pt-20">

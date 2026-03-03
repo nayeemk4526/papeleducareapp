@@ -4,6 +4,7 @@ import { User, ArrowLeft, Clock, Users, Star, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { useCoursesByCategory, useCategoryBySlug } from "@/hooks/useCourses";
 
 const CategoryPage = () => {
@@ -15,6 +16,7 @@ const CategoryPage = () => {
 
   return (
     <>
+      <SEO title={category?.name || "ক্যাটাগরি"} description={category?.description || `${category?.name || "ক্যাটাগরি"} - Papel Edu-Care এর কোর্সসমূহ`} />
       <Navbar />
       
       <main className="pt-20 pb-16 lg:pb-0">
