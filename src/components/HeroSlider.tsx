@@ -27,7 +27,6 @@ const HeroSlider = () => {
     return () => clearInterval(timer);
   }, [nextSlide, activeSlides.length]);
 
-  // Reset current slide if slides change
   useEffect(() => {
     if (currentSlide >= activeSlides.length && activeSlides.length > 0) {
       setCurrentSlide(0);
@@ -60,30 +59,41 @@ const HeroSlider = () => {
   const current = activeSlides[currentSlide];
 
   return (
-    <section className="relative w-full overflow-hidden">
+    <section className="relative w-full overflow-hidden bg-black">
       <AnimatePresence mode="wait">
         <motion.div
           key={current.id}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.97 }}
+          transition={{
+            opacity: { duration: 0.7, ease: "easeInOut" },
+            scale: { duration: 5, ease: "easeOut" },
+          }}
           className={`relative w-full aspect-[16/6] md:aspect-[16/5] ${current.link_url ? "cursor-pointer" : ""}`}
           onClick={() => handleSlideClick(current.link_url)}
         >
-          <img
+          {/* Ken Burns zoom on the image itself */}
+          <motion.img
             src={current.image_url}
             alt={current.title || "Hero slide"}
             className="w-full h-full object-cover"
+            initial={{ scale: 1 }}
+            animate={{ scale: 1.08 }}
+            transition={{ duration: 6, ease: "linear" }}
           />
-          {/* Optional dark overlay for readability */}
+
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
+
+          {/* Title */}
           {current.title && (
-            <div className="absolute inset-0 bg-black/20">
-              <div className="container mx-auto px-4 h-full flex items-end pb-12 md:pb-16">
+            <div className="absolute inset-0 flex items-end">
+              <div className="container mx-auto px-4 pb-12 md:pb-16">
                 <motion.h2
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
+                  initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
                   className="text-xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg"
                 >
                   {current.title}
@@ -98,19 +108,19 @@ const HeroSlider = () => {
       {activeSlides.length > 1 && (
         <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2 md:px-6 z-20 pointer-events-none">
           <motion.button
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.15, backgroundColor: "rgba(0,0,0,0.5)" }}
             whileTap={{ scale: 0.9 }}
             onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-            className="p-2 md:p-3 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 transition-colors pointer-events-auto"
+            className="p-2 md:p-3 rounded-full bg-black/25 backdrop-blur-md text-white transition-colors pointer-events-auto border border-white/10"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.15, backgroundColor: "rgba(0,0,0,0.5)" }}
             whileTap={{ scale: 0.9 }}
             onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-            className="p-2 md:p-3 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 transition-colors pointer-events-auto"
+            className="p-2 md:p-3 rounded-full bg-black/25 backdrop-blur-md text-white transition-colors pointer-events-auto border border-white/10"
             aria-label="Next slide"
           >
             <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
@@ -118,20 +128,27 @@ const HeroSlider = () => {
         </div>
       )}
 
-      {/* Slide Indicators */}
+      {/* Slide Indicators with progress animation */}
       {activeSlides.length > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
           {activeSlides.map((_, index) => (
             <button
               key={index}
               onClick={(e) => { e.stopPropagation(); setCurrentSlide(index); }}
-              className={`transition-all duration-300 rounded-full ${
-                index === currentSlide
-                  ? "w-8 h-2.5 bg-white"
-                  : "w-2.5 h-2.5 bg-white/50 hover:bg-white/70"
-              }`}
+              className="relative h-2.5 rounded-full overflow-hidden transition-all duration-300"
+              style={{ width: index === currentSlide ? 32 : 10 }}
               aria-label={`Go to slide ${index + 1}`}
-            />
+            >
+              <span className="absolute inset-0 bg-white/40 rounded-full" />
+              {index === currentSlide && (
+                <motion.span
+                  className="absolute inset-0 bg-white rounded-full origin-left"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 5, ease: "linear" }}
+                />
+              )}
+            </button>
           ))}
         </div>
       )}
