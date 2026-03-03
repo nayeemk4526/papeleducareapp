@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const MyCourses = () => {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ const MyCourses = () => {
 
   return (
     <>
+      <SEO title="আমার কোর্সসমূহ" description="আপনার ভর্তিকৃত কোর্সসমূহ দেখুন ও শেখা চালিয়ে যান।" />
       <Navbar />
       
       <main className="pt-20 min-h-screen bg-muted/30">

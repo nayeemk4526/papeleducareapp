@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
@@ -80,6 +81,7 @@ const ProfileSettings = () => {
 
   return (
     <>
+      <SEO title="প্রোফাইল সেটিংস" description="আপনার প্রোফাইল তথ্য আপডেট করুন।" />
       <Navbar />
       
       <main className="pt-20 min-h-screen bg-muted/30">

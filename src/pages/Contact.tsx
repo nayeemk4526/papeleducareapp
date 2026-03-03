@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const contactInfo = [
   {
@@ -61,6 +62,7 @@ const Contact = () => {
 
   return (
     <>
+      <SEO title="যোগাযোগ" description="Papel Edu-Care এর সাথে যোগাযোগ করুন। ফোন, ইমেইল বা সরাসরি মেসেজ পাঠান। আমরা সবসময় আপনার পাশে।" />
       <Navbar />
       
       <main className="pt-20">

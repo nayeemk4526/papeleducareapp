@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import SEO from "@/components/SEO";
 import logoImage from "@/assets/logo.png";
 
 const ForgotPassword = () => {
@@ -58,6 +59,7 @@ const ForgotPassword = () => {
 
   return (
     <>
+      <SEO title="পাসওয়ার্ড ভুলে গেছেন" description="আপনার পাসওয়ার্ড রিসেট করুন। ইমেইল দিয়ে রিসেট লিংক পান।" />
       <Navbar />
       
       <main className="min-h-screen pt-20 flex items-center justify-center py-8 bg-muted/30">

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import SEO from "@/components/SEO";
 import logoImage from "@/assets/logo.png";
 
 const ResetPassword = () => {
@@ -113,6 +114,7 @@ const ResetPassword = () => {
   if (isCheckingSession) {
     return (
       <>
+        <SEO title="পাসওয়ার্ড রিসেট" description="আপনার নতুন পাসওয়ার্ড সেট করুন।" />
         <Navbar />
         <main className="min-h-screen pt-20 flex items-center justify-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />

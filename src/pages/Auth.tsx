@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import Navbar from "@/components/Navbar";
 import logoImage from "@/assets/logo.png";
+import SEO from "@/components/SEO";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -185,6 +186,7 @@ const Auth = () => {
 
   return (
     <>
+      <SEO title={isLogin ? "লগইন" : "রেজিস্টার"} description="Papel Edu-Care এ লগইন বা রেজিস্টার করুন। আপনার শেখার যাত্রা শুরু করুন।" />
       <Navbar />
       
       <main className="min-h-screen pt-20 flex items-center justify-center py-8 bg-muted/30">

@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import MobileNavigation from "@/components/MobileNavigation";
 import { useCoursesByCategorySlug, type Course } from "@/hooks/useCourses";
 
@@ -97,6 +98,7 @@ const SemesterPage = () => {
 
   return (
     <>
+      <SEO title={semester.name} description={`${semester.name} এর কোর্সসমূহ - Papel Edu-Care`} />
       <Navbar />
       
       <main className="pt-20 pb-16 lg:pb-0">
