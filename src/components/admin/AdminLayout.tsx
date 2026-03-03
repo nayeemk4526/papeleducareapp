@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, BookOpen, Users, CreditCard, LayoutGrid, 
-  GraduationCap, Ticket, ArrowLeft, FileText, Settings, Video
+  GraduationCap, Ticket, ArrowLeft, FileText, Settings, Image
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 const menuItems = [
   { label: "ড্যাশবোর্ড", href: "/admin", icon: LayoutDashboard },
+  { label: "হিরো স্লাইডার", href: "/admin/hero-slides", icon: Image },
   { label: "কোর্স", href: "/admin/courses", icon: BookOpen },
   { label: "ক্যাটাগরি", href: "/admin/categories", icon: LayoutGrid },
   { label: "শিক্ষক", href: "/admin/teachers", icon: GraduationCap },
